@@ -302,7 +302,7 @@ const result = excelToJson({
 	}]
 });
 
-// result will be an Object like:
+// result will be an Object like this:
 {
     sheet1: [{
         A: 'data of cell A2',
