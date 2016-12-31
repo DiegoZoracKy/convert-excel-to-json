@@ -12,12 +12,28 @@ Key features:
 ## Install
 
 ### NPM / Node
+
 ```javascript
 npm install convert-excel-to-json
 ```
+
+or to use it via command-line
+
+```javascript
+npm install -g convert-excel-to-json
+```
+
 ## Usage / Examples
 
-For all the examples, lets suppose that our excel file has two sheets, named as 'sheet1' and 'sheet2'
+For all the examples, lets suppose that our excel file has two sheets, named as 'sheet1' and 'sheet2'.
+
+### CLI
+
+OBS: All the following examples can be used via command-line, in this case, the `--config` parameter expects a JSON string. `"outputJSON": true` must be used to *console.log* the result.
+
+```javascript
+$ convert-excel-to-json --config='{"sourceFile": "tests/test-data.xlsx", "outputJSON": true}'
+```
 
 ### Simple conversion
 
@@ -319,5 +335,24 @@ const result = excelToJson({
     }]
 }
 ```
+## Extra Config
 
+### outputJSON
 
+To *console.log* the result.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+    sourceFile: 'SOME-EXCEL-FILE.xlsx',
+    outputJSON: true
+});
+```
+
+It is useful when using it directly from command-line
+
+```javascript
+$ convert-excel-to-json --config='{"sourceFile": "tests/test-data.xlsx", "outputJSON": true}'
+```
