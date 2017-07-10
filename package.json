@@ -26,7 +26,7 @@
     "argparse": "^1.0.2",
     "magic-bins": "^0.3.0",
     "node.extend": "^1.1.5",
-    "xlsx": "^0.8.0"
+    "xlsx": "^0.10.7"
   },
   "devDependencies": {
     "chai": "^3.5.0",
