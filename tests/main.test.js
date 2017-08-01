@@ -191,7 +191,7 @@ describe('Conversion', function() {
 
 					it('should have the last row data on the last position', function() {
 						assert.deepEqual({
-							A: '50',
+							A: 50,
 							B: 'Susan',
 							C: 'Miller',
 							D: 'smiller1d@china.com.cn',
@@ -538,8 +538,8 @@ function simple(config) {
 			});
 
 			it('should have the last row data on the last position', function() {
-				assert.deepEqual({
-					A: '24',
+				assert.deepStrictEqual({
+					A: 24,
 					B: 'Debra',
 					C: 'Oliver',
 					D: 'dolivern@yolasite.com',
@@ -577,8 +577,8 @@ function simple(config) {
 			});
 
 			it('should have the last row data on the last position', function() {
-				assert.deepEqual({
-					A: '50',
+				assert.deepStrictEqual({
+					A: 50,
 					B: 'Susan',
 					C: 'Miller',
 					D: 'smiller1d@china.com.cn',
