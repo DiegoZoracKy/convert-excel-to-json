@@ -347,24 +347,3 @@ const result = excelToJson({
     }]
 }
 ```
-## Extra Config
-
-### outputJSON
-
-To *console.log* the result.
-
-```javascript
-'use strict';
-const excelToJson = require('convert-excel-to-json');
-
-const result = excelToJson({
-    sourceFile: 'SOME-EXCEL-FILE.xlsx',
-    outputJSON: true
-});
-```
-
-It is useful when using it directly from command-line
-
-```javascript
-$ convert-excel-to-json --config='{"sourceFile": "tests/test-data.xlsx", "outputJSON": true}'
-```
