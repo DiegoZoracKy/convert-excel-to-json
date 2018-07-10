@@ -29,10 +29,22 @@ For all the examples, lets suppose that our excel file has two sheets, named as 
 
 ### CLI
 
-OBS: All the following examples can be used via command-line, in this case, the `--config` parameter expects a JSON string. `"outputJSON": true` must be used to *console.log* the result.
+OBS: All the following examples can be used via command-line, in this case, the `--config` parameter expects a valid JSON string.
 
 ```javascript
-$ convert-excel-to-json --config='{"sourceFile": "tests/test-data.xlsx", "outputJSON": true}'
+$ convert-excel-to-json --config='{"sourceFile": "tests/test-data.xlsx"}'
+```
+
+In order to use it passing in only the **sourceFile** without extra configuration:
+
+```javascript
+$ convert-excel-to-json --sourceFile="tests/test-data.xlsx"
+```
+
+To check the help section:
+
+```javascript
+$ convert-excel-to-json --help
 ```
 
 ### Simple conversion
