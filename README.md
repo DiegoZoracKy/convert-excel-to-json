@@ -274,7 +274,86 @@ const result = excelToJson({
 }
 ```
 
-**OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
+### Mapping columns to keys :: Transform
+
+#### Explicit Type Cast Cell Value Transformation
+
+Specify a primitive type to cast the raw cell value to.
+Allowed values are 'string', 'number', 'date' and 'boolean'
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header:{
+	    rows: 3
+	}
+	columnToKey: {
+		'A': {
+            property: 'id',
+            transform: 'string'
+        },
+        'B': {
+            property: 'productNumber',
+            transform: 'number'
+        },
+		'C': {
+            property: 'startedDate',
+            transform: 'date'
+        },
+        'D': {
+            property: 'isActive',
+            transform: 'boolean'
+        }
+	}
+});
+```
+
+#### Function Cell Value Transformation
+
+Specify a function to transform the cell value.
+It will allow access to the original raw cell value, and will also allow access to other cells from within the same row.
+This allows for transformations which incorporate cross cell concatenations or calclations.
+
+The rowCells paremeter will be a an object containing property names matching the list of column letters outlined in the columnToKey object properties.
+Each property assigned to each letter will be the underlying node libraries XLSX "Cell object" (https://www.npmjs.com/package/xlsx#cell-object)
+
+**IMPORTANT NOTE**
+The row cells available for acces in the rowCells param will be limited to the cells outlined in your columnToKey config object.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header:{
+	    rows: 3
+	}
+	columnToKey: {
+		'A': 'id'
+        'B': {
+            property: 'productNumber',
+            transform: 'number'
+        },
+		'C': {
+            property: 'startedDate',
+            transform: (rawCellValue, rowCells) => {
+                return new Date(rawCellValue).toUTCString();
+            }
+        },
+        'D': {
+            property: 'uniqueLabel',
+            transform: transform: (rawCellValue, rowCells) => {
+                return `${String(rowCells['B'].v)} - ${String(rowCells['A'].v)}`;
+            }
+        }
+	}
+});
+```
+
 
 #### Automatic key/property naming following the column header {{columnHeader}}
 
@@ -307,6 +386,7 @@ const result = excelToJson({
 ```
 
 **OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
+
 
 ### Range
 

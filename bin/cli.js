@@ -18,5 +18,21 @@ require('magicli')({
 	},
 	pipe: {
 		after: JSON.stringify
+		
+		// Sample used for testing transform functions
+		// before: (args, positionalArgs, argsAfterEndOfOptions) => {
+
+		// 	if (args.config) {
+		// 		var parsedConfigArg = JSON.parse(args.config);
+		// 		parsedConfigArg.columnToKey.A = {
+		// 			property: 'account',
+		// 			transform: (rawCellValue, rowCells) => {
+		// 				return `Account: ${String(rowCells['A'].v)} - BSB: ${String(rowCells['C'].v)}`;
+		// 			}
+		// 		}
+		// 		args.config = parsedConfigArg;
+		// 	}
+		// 	return args;
+		// }
 	}
 });
