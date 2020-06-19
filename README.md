@@ -291,7 +291,7 @@ const result = excelToJson({
 	    rows: 3
 	},
 	columnToKey: {
-		A: {
+        A: {
             property: 'id',
             transform: 'string'
         },
@@ -299,7 +299,7 @@ const result = excelToJson({
             property: 'productNumber',
             transform: 'number'
         },
-		C: {
+        C: {
             property: 'startedDate',
             transform: 'date'
         },
@@ -307,7 +307,7 @@ const result = excelToJson({
             property: 'isActive',
             transform: 'boolean'
         }
-	}
+    }
 });
 ```
 
@@ -333,12 +333,12 @@ const result = excelToJson({
 	    rows: 3
 	},
 	columnToKey: {
-		A: 'id',
+        A: 'id',
         B: {
             property: 'productNumber',
             transform: 'number'
         },
-		C: {
+        C: {
             property: 'startedDate',
             transform: (rawCellValue, rowCells) => {
                 return new Date(rawCellValue).toUTCString();
@@ -350,7 +350,7 @@ const result = excelToJson({
                 return `${String(rowCells['B'].v)} - ${String(rowCells['A'].v)}`;
             }
         }
-	}
+    }
 });
 ```
 
