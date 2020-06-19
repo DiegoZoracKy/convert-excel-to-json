@@ -289,21 +289,21 @@ const result = excelToJson({
 	sourceFile: 'SOME-EXCEL-FILE.xlsx',
 	header:{
 	    rows: 3
-	}
+	},
 	columnToKey: {
-		'A': {
+		A: {
             property: 'id',
             transform: 'string'
         },
-        'B': {
+        B: {
             property: 'productNumber',
             transform: 'number'
         },
-		'C': {
+		C: {
             property: 'startedDate',
             transform: 'date'
         },
-        'D': {
+        D: {
             property: 'isActive',
             transform: 'boolean'
         }
@@ -331,20 +331,20 @@ const result = excelToJson({
 	sourceFile: 'SOME-EXCEL-FILE.xlsx',
 	header:{
 	    rows: 3
-	}
+	},
 	columnToKey: {
-		'A': 'id'
-        'B': {
+		A: 'id',
+        B: {
             property: 'productNumber',
             transform: 'number'
         },
-		'C': {
+		C: {
             property: 'startedDate',
             transform: (rawCellValue, rowCells) => {
                 return new Date(rawCellValue).toUTCString();
             }
         },
-        'D': {
+        D: {
             property: 'uniqueLabel',
             transform: transform: (rawCellValue, rowCells) => {
                 return `${String(rowCells['B'].v)} - ${String(rowCells['A'].v)}`;
