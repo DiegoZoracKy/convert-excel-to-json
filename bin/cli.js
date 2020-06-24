@@ -1,5 +1,23 @@
 #!/usr/bin/env node
 
+
+const convertXlsxToJsonTransformNumberTypes = (rawCellValue, rowCells) => {
+    return GetValidTransformedNumberVal(rawCellValue);
+}
+
+function GetValidTransformedNumberVal(value){
+
+    console.log(`GetValidTransformedNumberVal = ${value}`);
+
+    if(typeof value === 'undefined' || value === null || value === ''){
+        return Number(0);
+    }
+    else{
+        return Number(value);
+    }
+}
+
+
 require('magicli')({
 	commands: {
 		'convert-excel-to-json': {
@@ -17,18 +35,20 @@ require('magicli')({
 		}
 	},
 	pipe: {
-		after: JSON.stringify
+		after: JSON.stringify,
 		
-		// Sample used for testing transform functions
+		// // Sample used for testing transform functions
 		// before: (args, positionalArgs, argsAfterEndOfOptions) => {
 
 		// 	if (args.config) {
 		// 		var parsedConfigArg = JSON.parse(args.config);
-		// 		parsedConfigArg.columnToKey.A = {
-		// 			property: 'account',
-		// 			transform: (rawCellValue, rowCells) => {
-		// 				return `Account: ${String(rowCells['A'].v)} - BSB: ${String(rowCells['C'].v)}`;
-		// 			}
+		// 		parsedConfigArg.columnToKey.G = {
+		// 			property: 'debit',
+		// 			transform: convertXlsxToJsonTransformNumberTypes
+		// 		}
+		// 		parsedConfigArg.columnToKey.H = {
+		// 			property: 'credit',
+		// 			transform: convertXlsxToJsonTransformNumberTypes
 		// 		}
 		// 		args.config = parsedConfigArg;
 		// 	}
