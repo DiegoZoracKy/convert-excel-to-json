@@ -308,6 +308,34 @@ const result = excelToJson({
 
 **OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
 
+### Null values
+
+If you would like to include null values in the result, you can specify the sheetStubs option.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: sourceFile,
+    sheetStubs: true
+});
+
+// result will include null values for empty cells C1, B2 in the example below:
+{
+    sheet1: [{
+        A: 'data of cell A1',
+        B: 'data of cell B1',
+        C: null
+    }],
+    sheet2: [{
+        A: 'data of cell A1',
+        B: null,
+        C: 'data of cell C1'
+    }]
+}
+```
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
