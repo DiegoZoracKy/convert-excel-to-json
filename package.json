@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "argparse": "^1.0.2",
-    "magicli": "^0.0.8",
+    "magicli": "^0.2.1",
     "node.extend": "^2.0.2",
     "xlsx": "^0.12.1"
   },
