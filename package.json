@@ -23,13 +23,13 @@
     "test": "mocha ./tests -b"
   },
   "dependencies": {
-    "argparse": "^1.0.2",
-    "magicli": "0.0.8",
+    "argparse": "^1.0.9",
+    "magicli": "0.2.1",
     "node.extend": "^2.0.2",
-    "xlsx": "^0.12.1"
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^5.2.0"
+    "chai": "^4.3.4",
+    "mocha": "^8.4.0"
   }
 }
