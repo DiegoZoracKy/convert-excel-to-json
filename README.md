@@ -47,6 +47,12 @@ To check the help section:
 $ convert-excel-to-json --help
 ```
 
+To export the generated JSON to a file, use the `--outputFile` parameter:
+
+```javascript
+$ convert-excel-to-json --sourceFile="tests/test-data.xlsx" --outputFile="output.json"
+```
+
 ### Simple conversion
 
 Just gets all the rows, for each sheet, where each row will be represented by an object with a structure like `{ COLUMN: 'CELLVALUE' }`, e.g. from a sheet with only one column ( the column A) and two rows `[{A: 'VALUE OF A1'}, {A: 'VALUE OF A2'}]`
@@ -74,6 +80,20 @@ const result = excelToJson({
 }
 
 
+```
+
+To export the generated JSON to a file, use the `outputFile` parameter:
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	outputFile: 'output.json'
+});
+
+// The JSON data will be written to 'output.json' file
 ```
 
 ### Converting an xlsx that you have as a Buffer

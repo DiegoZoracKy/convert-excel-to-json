@@ -644,6 +644,28 @@ describe('Execution via CLI', function() {
 	});
 });
 
+describe('Export JSON to file', function() {
+	const outputFile = path.resolve(`${__dirname}/output.json`);
+
+	afterEach(function() {
+		if (fs.existsSync(outputFile)) {
+			fs.unlinkSync(outputFile);
+		}
+	});
+
+	it('should export JSON data to a file when outputFile parameter is provided', function() {
+		const jsonResult = excelToJson({
+			sourceFile: sourceFile,
+			outputFile: outputFile
+		});
+
+		assert(fs.existsSync(outputFile), 'Output file should exist');
+
+		const exportedJson = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+		assert.deepEqual(jsonResult, exportedJson, 'Exported JSON data should match the generated JSON data');
+	});
+});
+
 function simple(config) {
 
 	const jsonResult = excelToJson(config);
