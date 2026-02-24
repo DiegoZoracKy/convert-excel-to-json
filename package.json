@@ -20,16 +20,9 @@
     "converts excel"
   ],
   "scripts": {
-    "test": "mocha ./tests -b"
+    "test": "node --test ./tests/main.test.js"
   },
   "dependencies": {
-    "argparse": "^1.0.2",
-    "magicli": "0.0.8",
-    "node.extend": "^2.0.2",
-    "xlsx": "^0.12.1"
-  },
-  "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^5.2.0"
+    "xlsx-republish": "^0.20.3"
   }
 }
