@@ -364,7 +364,9 @@ const result = excelToJson({
 // JSON.stringify(result) -> {"sheet1":[null,{"A":"data of cell A2","B":"data of cell B2"},null,{"A":"data of cell A4","B":"data of cell B4"}]}
 ```
 
-**OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too. The rows skipped by `header.rows` are not counted.
+**OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
+
+The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
 
 ### Range
 

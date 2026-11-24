@@ -27,3 +27,11 @@ describe('"includeEmptyLines" as documented on README (#61)', function() {
 		assert.equal(JSON.stringify(rows), '[null,{"A":"data of cell A2","B":"data of cell B2"},null,{"A":"data of cell A4","B":"data of cell B4"}]');
 	});
 });
+
+describe('"includeEmptyLines" with "header.rows" (review of #94)', function() {
+	it('should keep a position for the skipped header rows too', function() {
+		const source = buildWorkbook({ sheet1: [['header'], [2]] });
+		const rows = excelToJson({ source, header: { rows: 1 }, includeEmptyLines: true }).sheet1;
+		assert.equal(JSON.stringify(rows), '[null,{"A":2}]');
+	});
+});
