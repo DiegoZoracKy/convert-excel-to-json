@@ -102,6 +102,36 @@ const result = excelToJson({
 }
 ```
 
+### On the browser
+
+The module can be used on a web page through a bundler (e.g. [Vite](https://vitejs.dev), [webpack](https://webpack.js.org), [esbuild](https://esbuild.github.io)). As there's no file system on the browser, `sourceFile` can't be used: read the file chosen by the user as an `ArrayBuffer` and pass it in as `source` (an `ArrayBuffer`, a `Uint8Array`, a Node.js `Buffer` or a base64 String are accepted).
+
+```html
+<input type="file" id="excel-file" accept=".xlsx,.xls">
+<script type="module" src="./main.js"></script>
+```
+
+```javascript
+// main.js (bundled with Vite, webpack, esbuild...)
+import excelToJson from 'convert-excel-to-json';
+
+document.getElementById('excel-file').addEventListener('change', async event => {
+	const file = event.target.files[0];
+
+	const result = excelToJson({
+		source: await file.arrayBuffer(), // or the result of FileReader.readAsArrayBuffer()
+		header: {
+			rows: 1
+		},
+		columnToKey: {
+			'*': '{{columnHeader}}'
+		}
+	});
+
+	console.log(result); // { sheet1: [...], sheet2: [...] }
+});
+```
+
 ### Identifying header rows
 
 You will notice that if your sheet has some top rows setup as a header (it is very common), the first position of our result will have this data, which in this case it should not be very useful. So we can tell the module how many of the rows are headers, so we can skip them and get only the data.
