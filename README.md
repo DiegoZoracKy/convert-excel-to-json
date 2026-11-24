@@ -9,6 +9,8 @@ Key features:
 - Specify a column to key mapping (e.g. `{porperty1: 'CELLVALUE A1', property2: 'CELLVALUE B1'}`)
 - Get just specific sheets (e.g. `{sheets: ['sheet1', 'sheet2']}`)
 
+See the [CHANGELOG](CHANGELOG.md) for the changes on each release.
+
 ## Install
 
 ### NPM / Node
