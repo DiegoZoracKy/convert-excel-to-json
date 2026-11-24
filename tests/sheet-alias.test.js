@@ -37,3 +37,27 @@ describe('sheet "alias" (#58)', function() {
 		assert.deepStrictEqual(result, { Ladder: [{ A: 'Season', B: 'Autumn' }] });
 	});
 });
+
+describe('sheet "alias" collisions (review of #91)', function() {
+	const source = buildWorkbook({ sheet1: [['one']], sheet2: [['two']] });
+
+	it('should throw when an alias matches the name of another selected sheet (alias last)', function() {
+		assert.throws(() => excelToJson({ source, sheets: ['sheet1', { name: 'sheet2', alias: 'sheet1' }] }), /result key 'sheet1' is used by more than one sheet config/);
+	});
+
+	it('should throw when an alias matches the name of another selected sheet (alias first)', function() {
+		assert.throws(() => excelToJson({ source, sheets: [{ name: 'sheet2', alias: 'sheet1' }, 'sheet1'] }), /result key 'sheet1'/);
+	});
+
+	it('should throw on two equal aliases', function() {
+		assert.throws(() => excelToJson({ source, sheets: [{ name: 'sheet1', alias: 'x' }, { name: 'sheet2', alias: 'x' }] }), /result key 'x'/);
+	});
+
+	it('should allow an alias equal to its own sheet name', function() {
+		assert.deepStrictEqual(excelToJson({ source, sheets: [{ name: 'sheet1', alias: 'sheet1' }] }), { sheet1: [{ A: 'one' }] });
+	});
+
+	it('should keep the previous behaviour for the same sheet listed twice without aliases', function() {
+		assert.deepStrictEqual(excelToJson({ source, sheets: ['sheet1', 'sheet1'] }), { sheet1: [{ A: 'one' }] });
+	});
+});

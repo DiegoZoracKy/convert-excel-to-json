@@ -292,7 +292,7 @@ const result = excelToJson({
 }
 ```
 
-**OBS:** `header.rows` counts from the top of the sheet (not from the beginning of the range).
+**OBS:** `header.rows` counts from the top of the sheet (not from the beginning of the range). Each `alias` must be unique and different from the names of the other selected sheets, otherwise an error is thrown.
 
 ### Mapping columns to keys :: Special Variables
 
