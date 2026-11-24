@@ -70,3 +70,46 @@ describe('columnToKey with { property, transform } (#4, #31)', function() {
 		assert.deepStrictEqual(result.sheet1, [{ id: 1, name: 'Judith' }, { id: 2, name: 'Denise' }]);
 	});
 });
+
+describe('transform (review of #82)', function() {
+	it('should run a transform only on the value of its own column when two columns map to the same key', function() {
+		const source = buildWorkbook({ sheet1: [['a', 'b'], ['from A', 'from B']] });
+
+		// B (no transform) is written last, so it owns the key: A's transform must not run on B's value
+		const lastWithoutTransform = excelToJson({
+			source, header: { rows: 1 },
+			columnToKey: { A: { property: 'x', transform: v => `transformed ${v}` }, B: 'x' }
+		});
+		assert.deepStrictEqual(lastWithoutTransform.sheet1, [{ x: 'from B' }]);
+
+		// B (with transform) is written last: its transform runs on its own value
+		const lastWithTransform = excelToJson({
+			source, header: { rows: 1 },
+			columnToKey: { A: 'x', B: { property: 'x', transform: v => `transformed ${v}` } }
+		});
+		assert.deepStrictEqual(lastWithTransform.sheet1, [{ x: 'transformed from B' }]);
+	});
+
+	it('should not let a conversion started inside a transform change the outer conversion config', function() {
+		const source = buildWorkbook({ sheet1: [['code'], ['A1'], [null], ['B2']] });
+		const lookupSource = buildWorkbook({ sheet1: [['A1', 'Apple'], ['B2', 'Banana']] });
+
+		const result = excelToJson({
+			source,
+			header: { rows: 1 },
+			includeEmptyLines: true,
+			columnToKey: {
+				A: {
+					property: 'name',
+					transform: value => excelToJson({ source: lookupSource, columnToKey: { A: 'code', B: 'name' } }).sheet1.find(row => row.code === value).name
+				}
+			}
+		});
+
+		// includeEmptyLines of the outer call still applies: slots for the skipped header row 1 and the empty row 3
+		assert.equal(result.sheet1.length, 4);
+		assert.deepStrictEqual(result.sheet1[1], { name: 'Apple' });
+		assert.strictEqual(result.sheet1[2], undefined);
+		assert.deepStrictEqual(result.sheet1[3], { name: 'Banana' });
+	});
+});
