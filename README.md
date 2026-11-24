@@ -336,6 +336,34 @@ const result = excelToJson({
 }
 ```
 
+### Booleans
+
+By default, boolean cells are returned as the text displayed on Excel (`'TRUE'` / `'FALSE'`). Set `parseBooleans` to `true` to get them as JavaScript Booleans. Text cells containing `true` or `false` (case insensitive) are also converted.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	},
+	parseBooleans: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        Name: 'Anthony',
+        Membership: true // instead of 'TRUE'
+    }]
+}
+```
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
