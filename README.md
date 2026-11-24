@@ -147,6 +147,31 @@ const result = excelToJson({
 }
 ```
 
+### Sheets by index
+
+Sheets can also be referenced by their position on the workbook (zero-based), whatever their names are. Use a Number, or an object with `index` (instead of `name`) to also define a config for that sheet. The result keys are still the sheet names.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	sheets: [1, {
+	    index: 2,
+	    header: {
+	        rows: 1
+	    }
+	}]
+});
+
+// result will be an Object like (for a workbook with the sheets 'sheet1', 'sheet2' and 'sheet3'):
+{
+    sheet2: [ ... ],
+    sheet3: [ ... ]
+}
+```
+
 ### Mapping columns to keys
 
 #### One config to all sheets
