@@ -26,8 +26,31 @@ describe('"sheets" by index (#25)', function() {
 		assert.throws(() => excelToJson({ source, sheets: [3] }), /no sheet at index 3/);
 	});
 
-	it('should follow the workbook order on "numberOfSheetsToGet"', function() {
+	it('should keep "numberOfSheetsToGet" behaving as before', function() {
 		const result = excelToJson({ source, sheets: { numberOfSheetsToGet: 2 } });
 		assert.deepStrictEqual(Object.keys(result), ['Zeta', 'Alpha']);
+	});
+});
+
+describe('"numberOfSheetsToGet" backward compatibility (review of #87)', function() {
+	// Object.keys lists integer-like sheet names first: callers relying on the previous
+	// behaviour must keep getting '1' for a workbook ordered ['Sales', '1']
+	const XLSX = buildWorkbook.XLSX;
+	const workbook = XLSX.utils.book_new();
+	XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['sales']]), 'Sales');
+	XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['one']]), '1');
+	const source = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+	it('should be a workbook ordered [Sales, 1]', function() {
+		assert.deepStrictEqual(XLSX.read(source, { type: 'buffer' }).SheetNames, ['Sales', '1']);
+	});
+
+	it('should keep returning the same sheet as before for numberOfSheetsToGet: 1', function() {
+		assert.deepStrictEqual(Object.keys(excelToJson({ source, sheets: { numberOfSheetsToGet: 1 } })), ['1']);
+	});
+
+	it('should select by workbook position only when an index is used', function() {
+		assert.deepStrictEqual(Object.keys(excelToJson({ source, sheets: [0] })), ['Sales']);
+		assert.deepStrictEqual(excelToJson({ source, sheets: [1] }), { 1: [{ A: 'one' }] });
 	});
 });
