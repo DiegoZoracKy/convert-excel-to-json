@@ -336,6 +336,34 @@ const result = excelToJson({
 }
 ```
 
+### Blank spaces as null values
+
+Cells containing only blank spaces are returned as they are (e.g. `'   '`). Set `whitespaceToNull` to `true` to get `null` for them instead. Together with `sheetStubs`, every column will be present on the result, with `null` for the empty and blank cells.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	sheetStubs: true,
+	whitespaceToNull: true
+});
+
+// result will be an Object like (B2 is empty, C1 has only blank spaces):
+{
+    sheet1: [{
+        A: 'data of cell A1',
+        B: 'data of cell B1',
+        C: null
+    }, {
+        A: 'data of cell A2',
+        B: null,
+        C: 'data of cell C2'
+    }]
+}
+```
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
