@@ -28,3 +28,17 @@ describe('"parseBooleans" config (#55)', function() {
 		]);
 	});
 });
+
+describe('"parseBooleans" only on values (review of #85)', function() {
+	it('should not coerce header cells used as keys (TRUE and true stay distinct columns)', function() {
+		const source = buildWorkbook({ sheet1: [['TRUE', 'true'], ['yes', 'false']] });
+		const result = excelToJson({ source, header: { rows: 1 }, columnToKey: { '*': '{{columnHeader}}' }, parseBooleans: true });
+		assert.deepStrictEqual(result.sheet1, [{ TRUE: 'yes', true: false }]);
+	});
+
+	it('should not coerce cell variables used as keys', function() {
+		const source = buildWorkbook({ sheet1: [['true', 'False'], ['TRUE', 'x']] });
+		const result = excelToJson({ source, header: { rows: 1 }, columnToKey: { A: '{{A1}}', B: '{{B1}}' }, parseBooleans: true });
+		assert.deepStrictEqual(result.sheet1, [{ true: true, False: 'x' }]);
+	});
+});
