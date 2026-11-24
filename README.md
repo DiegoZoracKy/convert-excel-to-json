@@ -23,6 +23,8 @@ or to use it via command-line
 npm install -g convert-excel-to-json
 ```
 
+**OBS:** The spreadsheet parsing is done by [SheetJS](https://sheetjs.com). SheetJS no longer publishes new versions of the `xlsx` package to the npm registry (the last one there, `0.18.5`, has known vulnerabilities), so this module depends on the official tarball served by the [SheetJS CDN](https://cdn.sheetjs.com) (`https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`). npm installs it transparently, no extra step is needed.
+
 ## Usage / Examples
 
 For all the examples, lets suppose that our excel file has two sheets, named as 'sheet1' and 'sheet2'.
