@@ -6,6 +6,7 @@ Convert Excel to JSON, mapping sheet columns to object keys.
 
 Key features:
 - Define a specific Range (e.g. `'A1:E6'`)
+- Keep empty rows on the result with `includeEmptyLines`
 - Specify a column to key mapping (e.g. `{porperty1: 'CELLVALUE A1', property2: 'CELLVALUE B1'}`)
 - Get just specific sheets (e.g. `{sheets: ['sheet1', 'sheet2']}`)
 
@@ -787,6 +788,37 @@ const result = excelToJson({
     ]
 }
 ```
+
+### Empty lines (includeEmptyLines)
+
+By default, empty rows are removed from the result, so the position of an object on the result array doesn't necessarily match the row number on the sheet. To keep a position for each row (up to the last row with data), set `includeEmptyLines` to `true`. Empty rows will be represented as empty slots (`undefined`) on the array, which become `null` when the result is serialized with `JSON.stringify`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1: row 1 is empty, row 2 has data, row 3 is empty, row 4 has data
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	includeEmptyLines: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [
+        undefined, // row 1
+        { A: 'data of cell A2', B: 'data of cell B2' },
+        undefined, // row 3
+        { A: 'data of cell A4', B: 'data of cell B4' }
+    ]
+}
+
+// JSON.stringify(result) -> {"sheet1":[null,{"A":"data of cell A2","B":"data of cell B2"},null,{"A":"data of cell A4","B":"data of cell B4"}]}
+```
+
+**OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
+
+The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
 
 ### Range
 
