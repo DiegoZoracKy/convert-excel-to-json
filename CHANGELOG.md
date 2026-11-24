@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Dates are the npm release dates.
 
 ## [Unreleased]
+### Changed
+- README: documented the `sheetStubs` option ([#9](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/9), [#41](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/41)).
 
 ## [1.7.0] - 2020-06-08
 ### Added
@@ -65,7 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - First release: convert Excel to JSON, with `sheets`, `header.rows`, `columnToKey` (including cell variables and `{{columnHeader}}`) and `range` options.
 
-[Unreleased]: https://github.com/DiegoZoracKy/convert-excel-to-json/compare/cb3b404...HEAD
+[Unreleased]: https://github.com/DiegoZoracKy/convert-excel-to-json/compare/3719b02...HEAD
 [1.7.0]: https://www.npmjs.com/package/convert-excel-to-json/v/1.7.0
 [1.6.1]: https://www.npmjs.com/package/convert-excel-to-json/v/1.6.1
 [1.6.0]: https://www.npmjs.com/package/convert-excel-to-json/v/1.6.0
