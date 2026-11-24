@@ -308,6 +308,51 @@ const result = excelToJson({
 
 **OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
 
+### Transforming values during the conversion
+
+A column (or `'*'`) can also be mapped to an object with the key name on `property` and a `transform` function. The function receives the cell value and the entire row (with the original values of all the other columns) and returns the value to be used on the result.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		A: 'id',
+		B: 'firstName',
+		C: {
+			property: 'fullName',
+			transform: (value, row) => `${row.firstName} ${value}` // concatenating with the value of another column
+		},
+		D: {
+			property: 'phoneNumber',
+			transform: value => value.toString()
+		},
+		E: {
+			property: 'price',
+			transform: value => Number(value.toFixed(2)) // 1.4400000000000002 -> 1.44
+		}
+	}
+});
+```
+
+`property` accepts the same special variables as a String (e.g. `{{columnHeader}}`), so a transform can be applied to all the columns at once:
+
+```javascript
+columnToKey: {
+	'*': {
+		property: '{{columnHeader}}',
+		transform: value => typeof value === 'number' ? Number(value.toFixed(2)) : value
+	}
+}
+```
+
+**OBS:** `transform` is called only for cells that have a value (empty cells are not present on the result unless `sheetStubs` is set).
+
 ### Null values
 
 If you would like to include null values in the result, you can specify the sheetStubs option.
