@@ -75,7 +75,6 @@ const result = excelToJson({
     }]
 }
 
-
 ```
 
 ### Converting an xlsx that you have as a Buffer
@@ -532,6 +531,43 @@ const result = excelToJson({
 });
 
 // a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
+```
+
+### Rows as headers (transpose)
+
+When the headers are on the first column and each record is a column (instead of a row), set `transpose` to `true`. Rows and columns are swapped before the conversion, so the first column becomes the first row, and all the other configs (`header`, `columnToKey`, `{{columnHeader}}`...) work as usual. It can also be set per sheet.
+
+If a `range` is defined, it refers to the original sheet, and the transposed range is treated as if it started at `A1`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1:
+// |   | A    | B          | C           |
+// | 1 | Type | TypeData   | OtherType   |
+// | 2 | Date | DateData   | OtherDate   |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	transpose: true,
+	header: {
+		rows: 1 // the first column
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	}
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        Type: 'TypeData',
+        Date: 'DateData'
+    },{
+        Type: 'OtherType',
+        Date: 'OtherDate'
+    }]
+}
 ```
 
 ### Skipping hidden columns and rows
