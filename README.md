@@ -308,6 +308,37 @@ const result = excelToJson({
 
 **OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
 
+### Duplicated keys
+
+When two or more columns end up with the same key (e.g. the header has repeated names and `{{columnHeader}}` is used), the value of the last column overwrites the others. Set `suffixDuplicateKeys` to `true` to keep all of them, by adding a numeric suffix to the repeated keys (in the order the columns appear). It can also be set per sheet.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// header row: | test | test | other | test |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	},
+	suffixDuplicateKeys: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        test: 'data of cell A2',
+        test_2: 'data of cell B2',
+        other: 'data of cell C2',
+        test_3: 'data of cell D2'
+    }]
+}
+```
+
 ### Null values
 
 If you would like to include null values in the result, you can specify the sheetStubs option.
