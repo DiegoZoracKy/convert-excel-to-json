@@ -31,3 +31,24 @@ describe('"formattedValues" config (#62, #65)', function() {
 		assert.deepStrictEqual(row, { A: '22.5%', B: '1/1/19', C: '1,234.50', D: 'text', E: '7' });
 	});
 });
+
+describe('"formattedValues" padding (review of #84)', function() {
+	it('should keep the padding added by number formats', function() {
+		const source = buildWorkbook({
+			sheet1: {
+				'!ref': 'A1:C1',
+				A1: { t: 'n', v: 1234.5, z: '_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)' },
+				B1: { t: 'n', v: 7, z: '"  "0"  "' },
+				C1: { t: 's', v: '  text  ' }
+			}
+		});
+		const XLSX = buildWorkbook.XLSX;
+		const expectedA = XLSX.SSF.format('_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)', 1234.5);
+		assert.ok(/^\s|\s$/.test(expectedA), 'the accounting format pads the value');
+
+		const row = excelToJson({ source, formattedValues: true }).sheet1[0];
+		assert.strictEqual(row.A, expectedA);
+		assert.strictEqual(row.B, '  7  ');
+		assert.strictEqual(row.C, 'text'); // text cells keep the default trimming
+	});
+});

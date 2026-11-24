@@ -359,6 +359,8 @@ const result = excelToJson({
 }
 ```
 
+The display text of numbers and dates is returned exactly as Excel shows it, including any padding added by the number format (e.g. accounting formats such as `_(* #,##0.00_)` add spaces). Text cells keep the default whitespace handling.
+
 If you only need the dates as strings, you can also keep the default and convert them with `.map()` on the result (e.g. `row.date.toISOString()`).
 
 ### Range
