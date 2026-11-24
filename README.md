@@ -325,6 +325,60 @@ const result = excelToJson({
 }
 ```
 
+#### Reading more than one range from the same sheet (alias)
+
+By default the result keys are the sheet names, so a sheet can only appear once. Define an `alias` on the sheet config to name its result instead. This way the same sheet can be read more than once, e.g. with different ranges and mappings:
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet 'Ladder':
+// |   | A       | B      | C     |
+// | 1 | Season  | Autumn |       |
+// | 2 | Year    | 2021   |       |
+// | 3 |         |        |       |
+// | 4 | Ranking | Team   | Total |
+// | 5 | 1       | Team1  | 0     |
+// | 6 | 2       | Team2  | 0     |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	sheets: [{
+	    name: 'Ladder',
+	    alias: 'info',
+	    range: 'A1:B2',
+	    columnToKey: {
+	        A: 'key',
+	        B: 'value'
+	    }
+	},{
+	    name: 'Ladder',
+	    alias: 'standings',
+	    range: 'A4:C6',
+	    header: {
+	        rows: 4
+	    },
+	    columnToKey: {
+	        '*': '{{columnHeader}}'
+	    }
+	}]
+});
+
+// result will be an Object like:
+{
+    info: [
+        { key: 'Season', value: 'Autumn' },
+        { key: 'Year', value: 2021 }
+    ],
+    standings: [
+        { Ranking: 1, Team: 'Team1', Total: 0 },
+        { Ranking: 2, Team: 'Team2', Total: 0 }
+    ]
+}
+```
+
+**OBS:** `header.rows` counts from the top of the sheet (not from the beginning of the range). Each `alias` must be unique and different from the names of the other selected sheets, otherwise an error is thrown.
+
 ### Mapping columns to keys :: Special Variables
 
 #### Cell Variables
