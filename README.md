@@ -338,7 +338,7 @@ const result = excelToJson({
 
 ### Merged cells
 
-On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range. It can also be set per sheet.
+On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range (only inside the `range`, when one is defined). It can also be set per sheet. Each physical row is still returned as its own object.
 
 ```javascript
 'use strict';

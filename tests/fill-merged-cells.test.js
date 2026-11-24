@@ -46,3 +46,42 @@ describe('"fillMergedCells" config (#64)', function() {
 		assert.deepStrictEqual(result.sheet1[1], { Category: 'FirstCat', Place: 'Inside', Term: 360 });
 	});
 });
+
+describe('"fillMergedCells" limited to the range (review of #92)', function() {
+	const XLSX = buildWorkbook.XLSX;
+
+	it('should only fill merged cells inside the range, including merges starting before it', function() {
+		const ws = XLSX.utils.aoa_to_sheet([
+			['Group', 'v'],
+			[null, 1],
+			[null, 2],
+			['Other', 3]
+		]);
+		ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 2, c: 0 } }]; // A1:A3, value on A1 (outside the range)
+		const result = excelToJson({ source: buildWorkbook({ sheet1: ws }), range: 'A2:B3', fillMergedCells: true });
+		assert.deepStrictEqual(result.sheet1, [{ A: 'Group', B: 1 }, { A: 'Group', B: 2 }]);
+	});
+
+	it('should not expand merged areas that are outside of the range', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['a', 'b'], [1, 2]]);
+		ws.Z1 = { t: 's', v: 'huge' };
+		ws['!ref'] = 'A1:Z2';
+		ws['!merges'] = [{ s: { r: 0, c: 25 }, e: { r: 1048575, c: 25 } }]; // Z1:Z1048576
+		const source = buildWorkbook({ sheet1: ws });
+		// count the cells created by the expansion
+		const encodeCell = XLSX.utils.encode_cell;
+		let encodedCells = 0;
+		XLSX.utils.encode_cell = function() {
+			encodedCells++;
+			return encodeCell.apply(this, arguments);
+		};
+		let result;
+		try {
+			result = excelToJson({ source, range: 'A1:B2', fillMergedCells: true });
+		} finally {
+			XLSX.utils.encode_cell = encodeCell;
+		}
+		assert.deepStrictEqual(result.sheet1, [{ A: 'a', B: 'b' }, { A: 1, B: 2 }]);
+		assert.ok(encodedCells < 100, `the merged column outside of the range must not be expanded (${encodedCells} cells)`);
+	});
+});
