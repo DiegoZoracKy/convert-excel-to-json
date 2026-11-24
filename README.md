@@ -755,6 +755,39 @@ const result = excelToJson({
 }
 ```
 
+### Merged cells
+
+On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range (only inside the `range`, when one is defined). It can also be set per sheet. Each physical row is still returned as its own object.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1 (A2:A3 merged, with the value 'FirstCat'):
+// |   | A        | B     |
+// | 1 | Category | Term  |
+// | 2 | FirstCat | 12    |
+// | 3 |          | 360   |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	},
+	fillMergedCells: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [
+        { Category: 'FirstCat', Term: 12 },
+        { Category: 'FirstCat', Term: 360 } // instead of { Term: 360 }
+    ]
+}
+```
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
