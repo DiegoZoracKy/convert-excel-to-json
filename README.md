@@ -308,6 +308,26 @@ const result = excelToJson({
 
 **OBS:** {{columnHeader}} will follow the config *header.rows* or, in case it is not specified, it will always treat the first row as a header.
 
+#### Using a function to build the keys
+
+Instead of a String, a column (or `'*'`) can be mapped to a Function. It receives the value of the column header cell (following *header.rows*, like `{{columnHeader}}`) and the column letter, and must return the key name. Returning `undefined`, `null` or `''` skips the column.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+const camelCase = require('lodash/camelCase');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': (columnHeader, column) => camelCase(columnHeader) // 'First Name' -> 'firstName'
+	}
+});
+```
+
 ### Null values
 
 If you would like to include null values in the result, you can specify the sheetStubs option.
