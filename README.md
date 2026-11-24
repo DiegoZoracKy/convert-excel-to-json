@@ -1,6 +1,6 @@
 # convert-excel-to-json
 
-[![Build Status](https://api.travis-ci.org/DiegoZoracKy/convert-excel-to-json.svg)](https://travis-ci.org/DiegoZoracKy/convert-excel-to-json)
+[![test](https://github.com/DiegoZoracKy/convert-excel-to-json/actions/workflows/test.yml/badge.svg)](https://github.com/DiegoZoracKy/convert-excel-to-json/actions/workflows/test.yml)
 
 Convert Excel to JSON, mapping sheet columns to object keys.
 
