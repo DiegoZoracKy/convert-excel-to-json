@@ -49,3 +49,47 @@ describe('"transpose" config (#50)', function() {
 		assert.deepStrictEqual(result.sheet2, [{ Season: 'Autumn', Year: 2021, Round: 1 }]);
 	});
 });
+
+// Review of #89 + #90: transpose discarded the visibility metadata, so with
+// transpose + skipHiddenColumns a hidden column became a visible output row.
+describe('"transpose" with "skipHiddenColumns" / "skipHiddenRows" (#50, #46)', function() {
+	const XLSX = buildWorkbook.XLSX;
+	const ws = XLSX.utils.aoa_to_sheet([
+		['Type', 'TypeData', 'SecretData', 'OtherType'],
+		['Date', 'DateData', 'SecretDate', 'OtherDate'],
+		['Internal', 'i1', 'i2', 'i3']
+	]);
+	ws['!cols'] = [{}, {}, { hidden: true }, {}]; // column C hidden
+	ws['!rows'] = [{}, {}, { hidden: true }]; // row 3 hidden
+	const source = buildWorkbook({ sheet1: ws });
+	const config = { source, transpose: true, header: { rows: 1 }, columnToKey: { '*': '{{columnHeader}}' } };
+
+	it('should skip the hidden column of the file (an output row once transposed)', function() {
+		const result = excelToJson(Object.assign({ skipHiddenColumns: true }, config));
+		assert.deepStrictEqual(result.sheet1, [
+			{ Type: 'TypeData', Date: 'DateData', Internal: 'i1' },
+			{ Type: 'OtherType', Date: 'OtherDate', Internal: 'i3' }
+		]);
+	});
+
+	it('should skip the hidden row of the file (an output key once transposed)', function() {
+		const result = excelToJson(Object.assign({ skipHiddenRows: true }, config));
+		assert.deepStrictEqual(result.sheet1, [
+			{ Type: 'TypeData', Date: 'DateData' },
+			{ Type: 'SecretData', Date: 'SecretDate' },
+			{ Type: 'OtherType', Date: 'OtherDate' }
+		]);
+	});
+
+	it('should skip both, also with a range', function() {
+		const result = excelToJson(Object.assign({ skipHiddenColumns: true, skipHiddenRows: true, range: 'A1:D3' }, config));
+		assert.deepStrictEqual(result.sheet1, [
+			{ Type: 'TypeData', Date: 'DateData' },
+			{ Type: 'OtherType', Date: 'OtherDate' }
+		]);
+	});
+
+	it('should keep everything without the skip options', function() {
+		assert.equal(excelToJson(config).sheet1.length, 3);
+	});
+});
