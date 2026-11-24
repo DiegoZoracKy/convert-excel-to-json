@@ -336,6 +336,31 @@ const result = excelToJson({
 }
 ```
 
+### Formatted values (as displayed on Excel)
+
+By default, numbers and dates are returned with their raw values (e.g. a cell showing `22.5%` is returned as `0.225`, and a date as a `Date` object). To get the text exactly as it is displayed on Excel, following the cell format, set `formattedValues` to `true`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	formattedValues: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        A: '22.5%',       // instead of 0.225
+        B: '1/1/19',      // instead of a Date object
+        C: '$1,234.50'    // instead of 1234.5
+    }]
+}
+```
+
+If you only need the dates as strings, you can also keep the default and convert them with `.map()` on the result (e.g. `row.date.toISOString()`).
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
