@@ -104,7 +104,7 @@ const result = excelToJson({
 
 ### On the browser
 
-The module can be used on a web page through a bundler (e.g. [Vite](https://vitejs.dev), [webpack](https://webpack.js.org), [esbuild](https://esbuild.github.io)). As there's no file system on the browser, `sourceFile` can't be used: read the file chosen by the user as an `ArrayBuffer` and pass it in as `source` (an `ArrayBuffer`, a `Uint8Array`, a Node.js `Buffer` or a base64 String are accepted).
+The module can be used on a web page through a bundler (e.g. [Vite](https://vitejs.dev), [webpack](https://webpack.js.org), [esbuild](https://esbuild.github.io)). As there's no file system on the browser, `sourceFile` can't be used: read the file chosen by the user as an `ArrayBuffer` and pass it in as `source` (an `ArrayBuffer`, including one coming from an iframe, a `Uint8Array`, a Node.js `Buffer` or a base64 String are accepted; for other String encodings set `sourceType` to `'binary'` or `'string'`).
 
 ```html
 <input type="file" id="excel-file" accept=".xlsx,.xls">

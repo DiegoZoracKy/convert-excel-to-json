@@ -46,3 +46,35 @@ describe('"sourceFile" without a file system (#44)', function() {
 		}
 	});
 });
+
+describe('"source" from another realm and "sourceType" (review of #80)', function() {
+	const vm = require('vm');
+	const buffer = fs.readFileSync(`${__dirname}/test-data.xlsx`);
+	const expected = excelToJson({ source: buffer });
+
+	// Like an ArrayBuffer coming from a same-origin iframe: created by another realm's constructors
+	const otherRealm = vm.createContext({ bytes: Array.from(buffer) });
+	const foreignArrayBuffer = vm.runInContext('new Uint8Array(bytes).buffer', otherRealm);
+	const foreignUint8Array = vm.runInContext('new Uint8Array(bytes)', otherRealm);
+
+	it('should accept an ArrayBuffer from another realm', function() {
+		assert.equal(foreignArrayBuffer instanceof ArrayBuffer, false);
+		assert.deepStrictEqual(excelToJson({ source: foreignArrayBuffer }), expected);
+	});
+
+	it('should accept a Uint8Array from another realm', function() {
+		assert.equal(foreignUint8Array instanceof Uint8Array, false);
+		assert.deepStrictEqual(excelToJson({ source: foreignUint8Array }), expected);
+	});
+
+	it('should refuse sourceType "file" (a file system read mode) and unknown types', function() {
+		assert.throws(() => excelToJson({ source: `${__dirname}/test-data.xlsx`, sourceType: 'file' }), /'sourceType' must be one of 'base64', 'binary', 'string'/);
+		assert.throws(() => excelToJson({ source: 'abc', sourceType: 'buffer' }), /'sourceType' must be one of/);
+	});
+
+	it('should accept sourceType "string" for text formats (e.g. CSV)', function() {
+		const result = excelToJson({ source: 'a,b\n1,2', sourceType: 'string' });
+		assert.equal(result.Sheet1.length, 2);
+		assert.deepStrictEqual(result.Sheet1[1], { A: 1, B: 2 });
+	});
+});
