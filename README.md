@@ -121,6 +121,35 @@ const result = excelToJson({
 // result will be an Object like the previous example, but without the rows that was defined as headers
 ```
 
+To also keep the header rows on the result (e.g. to check if the headers are the expected ones) while still using them for `{{columnHeader}}`, set `header.include` to `true`:
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header:{
+	    rows: 1,
+	    include: true
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	}
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        id: 'id',           // the header row
+        name: 'name'
+    },{
+        id: 'data of cell A2',
+        name: 'data of cell B2'
+    }]
+}
+```
+
 ### Only to specific sheets
 
 Just gets all the rows for each sheet defined on the config object
