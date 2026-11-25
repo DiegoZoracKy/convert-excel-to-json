@@ -68,3 +68,11 @@ describe('"whitespaceToNull" + "sheetStubs" fill every column (review of #86)', 
 		assert.deepStrictEqual(result.sheet1, [{ A: 'a', B: 'b' }, { A: 1, B: 2 }, { A: 3, B: null }]);
 	});
 });
+
+describe('"whitespaceToNull" + "sheetStubs" with Object.prototype names (second review of #86)', function() {
+	it('should emit null for an absent value under a "toString" header', function() {
+		const source = buildWorkbook({ s: [['id', 'toString', 'constructor'], [1, null, null], [2, 'x', 'y']] });
+		const result = excelToJson({ source, header: { rows: 1 }, sheetStubs: true, whitespaceToNull: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.equal(JSON.stringify(result.s), '[{"id":1,"toString":null,"constructor":null},{"id":2,"toString":"x","constructor":"y"}]');
+	});
+});
