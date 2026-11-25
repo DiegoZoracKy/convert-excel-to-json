@@ -121,6 +121,35 @@ const result = excelToJson({
 // result will be an Object like the previous example, but without the rows that was defined as headers
 ```
 
+To also keep the header rows on the result (e.g. to check if the headers are the expected ones) while still using them for `{{columnHeader}}`, set `header.include` to `true`:
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header:{
+	    rows: 1,
+	    include: true
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	}
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        id: 'id',           // the header row
+        name: 'name'
+    },{
+        id: 'data of cell A2',
+        name: 'data of cell B2'
+    }]
+}
+```
+
 ### Only to specific sheets
 
 Just gets all the rows for each sheet defined on the config object
@@ -367,6 +396,22 @@ const result = excelToJson({
 ```
 
 **OBS:** Header cells of hidden columns can still be referenced by cell variables, e.g. `{{B1}}`.
+
+### Keeping whitespace (trim)
+
+By default, leading and trailing whitespace is removed from text values. To keep the values exactly as they are in the cells, set `trim` to `false`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	trim: false
+});
+
+// a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
+```
 
 ### Range
 
