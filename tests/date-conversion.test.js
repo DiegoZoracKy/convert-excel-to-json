@@ -153,3 +153,11 @@ describe('dates: second review of #79', function() {
 		});
 	});
 });
+
+describe('dates on sheets named like Object.prototype properties', function() {
+	it('should convert a sheet named "__proto__" with dates', function() {
+		const source = buildWorkbook({ ['__proto__']: { '!ref': 'A1', A1: { t: 'n', v: 43466, z: 'yyyy-mm-dd' } } });
+		const result = excelToJson({ source, sheets: ['__proto__'], utcDates: true });
+		assert.equal(JSON.stringify(result['__proto__']), '[{"A":"2019-01-01T00:00:00.000Z"}]');
+	});
+});
