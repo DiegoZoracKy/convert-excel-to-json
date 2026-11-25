@@ -7,12 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 To be released as **2.0.0** (major version, because of the new Node.js requirement).
 
+### Added
+- `trim: false` option, to keep leading/trailing whitespace ([#72](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/72), [#81](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/81)).
+- `header.include` option, to keep the header rows on the result ([#36](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/36), [#88](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/88)).
+- `skipHiddenColumns` and `skipHiddenRows` options ([#46](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/46), [#89](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/89)).
+- Functions on `columnToKey`, to build the keys from the header (e.g. `{ '*': _.camelCase }`) ([#70](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/70), [#78](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/78)).
+- `{ property, transform }` on `columnToKey`, to transform values during the conversion; `transform(value, row, cells)` ([#4](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/4), [#31](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/31), [#82](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/82)).
+- `suffixDuplicateKeys` option, to keep columns with repeated keys (`key`, `key_2`...) ([#21](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/21), [#83](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/83)).
+- `formattedValues` option, to get values as displayed on Excel ([#62](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/62), [#65](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/65), [#84](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/84)).
+- `parseBooleans` option ([#55](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/55), [#85](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/85)).
+- `whitespaceToNull` option ([#9](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/9), [#86](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/86)).
+- `ArrayBuffer`/`Uint8Array` as `source`, and browser usage ([#44](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/44), [#35](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/35), [#80](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/80)).
+- Sheets by index (`sheets: [0, { index: 1 }]`) ([#25](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/25), [#87](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/87)).
+- `transpose` option (rows as headers) ([#50](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/50), [#90](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/90)).
+- `alias` on a sheet config, to read the same sheet more than once ([#58](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/58), [#91](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/91)).
+- `fillMergedCells` option ([#64](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/64), [#92](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/92)).
+
 ### Changed
 - **Breaking:** Node.js 22 or later is required (`"engines": { "node": ">=22" }`). CI runs on Node.js 22, 24 and 26 ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 - The CLI no longer depends on `magicli`; it accepts the same arguments ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 - README: documented the `sheetStubs` option ([#9](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/9), [#41](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/41)).
 
 ### Fixed
+- Ranges crossing column `Z` (e.g. `A1:AB10`) ([#42](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/42), [#77](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/77)).
 - Dates are returned with the exact date and time shown on Excel, without drifting by seconds/hours depending on the host timezone; explicitly typed date cells are returned as Dates and milliseconds are kept. New `utcDates` option to get that wall-clock time in UTC ([#33](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/33), [#52](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/52), [#79](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/79)).
 
 ### Security

@@ -5,17 +5,33 @@ const assert = require('assert');
 const excelToJson = require('../');
 const buildWorkbook = require('./helpers/workbook');
 const XLSX = buildWorkbook.XLSX;
+const child_process = require('child_process');
+const path = require('path');
+
+// Runs `body` (which writes JSON to stdout) in a child process with the given TZ
+function runOnTimezone(timezone, body) {
+	const script = `const excelToJson = require(${JSON.stringify(path.resolve(__dirname, '..'))});\n${body}`;
+	const result = child_process.spawnSync(process.execPath, ['-e', script], {
+		env: Object.assign({}, process.env, { TZ: timezone }),
+		encoding: 'utf8'
+	});
+	const out = JSON.parse(result.stdout || 'null');
+	assert.ok(out, result.stderr);
+	return out;
+}
 
 describe('options combined (integration)', function() {
-	it('sheets by index + dates: dates are normalized on sheets selected by index', function() {
+	// Pinned to America/Sao_Paulo (child process): with the original bug (dates not normalized on
+	// sheets selected by index) this passes on UTC and fails there.
+	it('sheets by index + dates: dates are normalized on sheets selected by index (America/Sao_Paulo)', function() {
 		const ws = { A1: { t: 'n', v: 43466, z: 'yyyy-mm-dd' }, '!ref': 'A1' }; // 2019-01-01
 		const source = buildWorkbook({ S: ws });
-		const byIndex = excelToJson({ source, sheets: [0] });
-		const byName = excelToJson({ source, sheets: ['S'] });
-		assert.deepStrictEqual(byIndex, byName);
-		assert.ok(byIndex.S[0].A instanceof Date);
-		assert.strictEqual(byIndex.S[0].A.getFullYear(), 2019);
-		assert.strictEqual(byIndex.S[0].A.getHours(), 0);
+		const out = runOnTimezone('America/Sao_Paulo', `
+			const source = Buffer.from(${JSON.stringify(source.toString('base64'))}, 'base64');
+			const p = d => [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()].join('-');
+			process.stdout.write(JSON.stringify([p(excelToJson({ source, sheets: [0] }).S[0].A), p(excelToJson({ source, sheets: [{ index: 0 }] }).S[0].A), p(excelToJson({ source, sheets: ['S'] }).S[0].A)]));
+		`);
+		assert.deepStrictEqual(out, ['2019-1-1-0-0', '2019-1-1-0-0', '2019-1-1-0-0']);
 	});
 
 	it('sheets by index + alias', function() {
@@ -77,5 +93,62 @@ describe('options combined (integration)', function() {
 		ws.A1.z = '0%';
 		const source = buildWorkbook({ s: ws });
 		assert.deepStrictEqual(excelToJson({ source, formattedValues: true, trim: false }).s, [{ A: '50%', B: '  text  ' }]);
+	});
+});
+
+describe('options combined: second review of #96', function() {
+	it('aliases + dates: a worksheet selected under two aliases is normalized once (America/Sao_Paulo)', function() {
+		const sourceFile = path.resolve(__dirname, 'test-data-typed-dates.xlsx');
+		const out = runOnTimezone('America/Sao_Paulo', `
+			const once = excelToJson({ sourceFile: ${JSON.stringify(sourceFile)}, sheets: ['s'] });
+			const twice = excelToJson({ sourceFile: ${JSON.stringify(sourceFile)}, sheets: [{ name: 's', alias: 'a' }, { name: 's', alias: 'b' }] });
+			process.stdout.write(JSON.stringify([once.s[0].A, twice.a[0].A, twice.b[0].A]));
+		`);
+		assert.deepStrictEqual(out, ['2019-01-01T12:20:30.500Z', '2019-01-01T12:20:30.500Z', '2019-01-01T12:20:30.500Z']);
+	});
+
+	it('suffixDuplicateKeys + key callback + range: a column outside the range is never keyed', function() {
+		const source = buildWorkbook({ s: [[5, 'Name'], [1, 'x']] }); // A1 is a number: toLowerCase would throw
+		const result = excelToJson({ source, header: { rows: 1 }, range: 'B1:B2', suffixDuplicateKeys: true, columnToKey: { '*': header => header.toLowerCase() } });
+		assert.deepStrictEqual(result.s, [{ name: 'x' }]);
+	});
+
+	it('suffixDuplicateKeys + whitespaceToNull + sheetStubs: a wholly absent column is still emitted as null', function() {
+		const ws = { '!ref': 'A1:C1', A1: { t: 's', v: 'x' }, C1: { t: 's', v: 'y' } };
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, suffixDuplicateKeys: true, sheetStubs: true, whitespaceToNull: true });
+		assert.equal(JSON.stringify(result.s), '[{"A":"x","B":null,"C":"y"}]');
+	});
+
+	it('suffixDuplicateKeys + whitespaceToNull + sheetStubs + "toString" header', function() {
+		const source = buildWorkbook({ s: [['toString', 'toString'], [null, 1]] });
+		const result = excelToJson({ source, header: { rows: 1 }, suffixDuplicateKeys: true, sheetStubs: true, whitespaceToNull: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.equal(JSON.stringify(result.s), '[{"toString":null,"toString_2":1}]');
+	});
+
+	it('fillMergedCells + key callback: a merged header outside the range is read from its anchor', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['Group', null], [4, 5]]);
+		ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, header: { rows: 1 }, range: 'B2:B2', fillMergedCells: true, columnToKey: { '*': header => header } });
+		assert.deepStrictEqual(result.s, [{ Group: 5 }]);
+	});
+
+	it('key callback skipping a cell + transforms: no empty row is left', function() {
+		const source = buildWorkbook({ s: [['keep', 'skip'], ['a', null], [null, 'b']] });
+		const result = excelToJson({ source, header: { rows: 1 }, columnToKey: { A: { property: 'keep', transform: v => v.toUpperCase() }, B: () => null } });
+		assert.deepStrictEqual(result.s, [{ keep: 'A' }]);
+	});
+
+	it('transform cells + parseBooleans: cells are the converted values of the whole row', function() {
+		const source = buildWorkbook({ s: [[1, 'TRUE', 'note']] });
+		const result = excelToJson({ source, parseBooleans: true, columnToKey: { A: { property: 'n', transform: (v, row, cells) => [v, cells.B, cells.C] } } });
+		assert.deepStrictEqual(result.s, [{ n: [1, true, 'note'] }]);
+	});
+
+	it('transpose without a range + sheets by index: leading empty coordinates are kept', function() {
+		const ws = { '!ref': 'B2:B2', B2: { t: 's', v: 'v' } };
+		const source = buildWorkbook({ s: ws });
+		assert.equal(JSON.stringify(excelToJson({ source, sheets: [0], transpose: true, includeEmptyLines: true }).s), '[null,{"B":"v"}]');
 	});
 });
