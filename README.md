@@ -370,6 +370,22 @@ const result = excelToJson({
 }
 ```
 
+### Dates
+
+Cells formatted as dates (or date and time) are returned as JavaScript `Date` objects representing the same date and time shown on Excel, in the local timezone of the machine running the conversion. This includes cells explicitly typed as dates in the file, even without a date format, and keeps milliseconds. If you prefer the Date to represent that wall-clock time in UTC (so it's the same regardless of the server timezone), set `utcDates` to `true`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// cell A1 shows 1/1/2019 18:30
+const local = excelToJson({ sourceFile: 'SOME-EXCEL-FILE.xlsx' });
+// local.sheet1[0].A -> new Date(2019, 0, 1, 18, 30) (e.g. 2019-01-01T10:30:00.000Z on a server at UTC+8)
+
+const utc = excelToJson({ sourceFile: 'SOME-EXCEL-FILE.xlsx', utcDates: true });
+// utc.sheet1[0].A -> 2019-01-01T18:30:00.000Z, on any server
+```
+
 ### Empty lines (includeEmptyLines)
 
 By default, empty rows are removed from the result, so the position of an object on the result array doesn't necessarily match the row number on the sheet. To keep a position for each row (up to the last row with data), set `includeEmptyLines` to `true`. Empty rows will be represented as empty slots (`undefined`) on the array, which become `null` when the result is serialized with `JSON.stringify`.
