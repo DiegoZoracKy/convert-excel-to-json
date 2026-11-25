@@ -12,6 +12,9 @@ To be released as **2.0.0** (major version, because of the new Node.js requireme
 - The CLI no longer depends on `magicli`; it accepts the same arguments ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 - README: documented the `sheetStubs` option ([#9](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/9), [#41](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/41)).
 
+### Fixed
+- Dates are returned with the exact date and time shown on Excel, without drifting by seconds/hours depending on the host timezone; explicitly typed date cells are returned as Dates and milliseconds are kept. New `utcDates` option to get that wall-clock time in UTC ([#33](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/33), [#52](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/52), [#79](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/79)).
+
 ### Security
 - `xlsx` (SheetJS) updated to 0.20.3, installed from the official SheetJS CDN, as the versions on the npm registry have known vulnerabilities ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 

@@ -78,9 +78,6 @@ describe('dates (#33, #52)', function() {
 //   C1: t="d" 2020-02-29T23:59:59.000Z with a date number format
 //   D1: plain number 43466.5
 describe('explicitly typed dates and milliseconds (review of #79)', function() {
-	const XLSX = require('xlsx');
-	const [major, minor] = XLSX.version.split('.').map(Number);
-	const sheetJsUTC = major > 0 || minor >= 20;
 	const sourceFile = path.resolve(__dirname, 'test-data-typed-dates.xlsx');
 
 	['Asia/Kuala_Lumpur', 'America/Sao_Paulo', 'America/Los_Angeles', 'UTC'].forEach(timezone => {
@@ -102,14 +99,9 @@ describe('explicitly typed dates and milliseconds (review of #79)', function() {
 			assert.deepStrictEqual(out.local.slice(0, 2), ['2019-1-1-10-20-30-500', '2019-1-1-12-0-0-500']);
 			assert.deepStrictEqual(out.utc.slice(0, 2), ['2019-01-01T10:20:30.500Z', '2019-01-01T12:00:00.500Z']);
 			assert.strictEqual(out.local[3], 43466.5);
-			// A typed date that also has a date format is exact on SheetJS >= 0.20 (#76). On 0.12 its
-			// serial number is computed by SheetJS with the historical (LMT) offset, so only check the day.
-			if (sheetJsUTC) {
-				assert.equal(out.local[2], '2020-2-29-23-59-59-0');
-				assert.equal(out.utc[2], '2020-02-29T23:59:59.000Z');
-			} else {
-				assert.ok(/^2020-(2-29|3-1)-/.test(out.local[2]), out.local[2]);
-			}
+			// A typed date that also has a date format is exact too (SheetJS 0.20, #76)
+			assert.equal(out.local[2], '2020-2-29-23-59-59-0');
+			assert.equal(out.utc[2], '2020-02-29T23:59:59.000Z');
 		});
 	});
 
@@ -121,5 +113,43 @@ describe('explicitly typed dates and milliseconds (review of #79)', function() {
 	it('should round a time of 23:59:59.9999 to the next day instead of overflowing', function() {
 		const source = buildWorkbook({ sheet1: { '!ref': 'A1', A1: { t: 'n', v: 43466.99999999999, z: 'yyyy-mm-dd hh:mm:ss' } } });
 		assert.equal(excelToJson({ source, utcDates: true }).sheet1[0].A.toISOString(), '2019-01-02T00:00:00.000Z');
+	});
+});
+
+// Runs `body` (which must write JSON to stdout) in a child process with the given TZ, so the
+// host timezone is part of the test.
+function runOnTimezone(timezone, body) {
+	const script = `const excelToJson = require(${JSON.stringify(path.resolve(__dirname, '..'))});\n${body}`;
+	const result = child_process.spawnSync(process.execPath, ['-e', script], {
+		env: Object.assign({}, process.env, { TZ: timezone }),
+		encoding: 'utf8'
+	});
+	const out = JSON.parse(result.stdout || 'null');
+	assert.ok(out, result.stderr);
+	return out;
+}
+
+describe('dates: second review of #79', function() {
+	const typedDates = path.resolve(__dirname, 'test-data-typed-dates.xlsx');
+
+	it('should normalize a worksheet once, even when it is selected more than once (America/Sao_Paulo)', function() {
+		const out = runOnTimezone('America/Sao_Paulo', `
+			const once = excelToJson({ sourceFile: ${JSON.stringify(typedDates)}, sheets: ['s'] }).s[0];
+			const twice = excelToJson({ sourceFile: ${JSON.stringify(typedDates)}, sheets: ['s', 's'] }).s[0];
+			process.stdout.write(JSON.stringify([once.A, once.B, twice.A, twice.B]));
+		`);
+		assert.deepStrictEqual(out, ['2019-01-01T12:20:30.500Z', '2019-01-01T14:00:00.500Z', '2019-01-01T12:20:30.500Z', '2019-01-01T14:00:00.500Z']);
+	});
+
+	// tests/test-data-typed-dates-2011.xlsx, sheet "s": A1 and B1 are typed dates (t="d",
+	// 2011-12-31T00:00:00Z) with date formats, C1 is the serial number 40908 (2011-12-31) formatted as a date
+	['UTC', 'America/Sao_Paulo', 'Asia/Tokyo', 'America/Los_Angeles', 'Pacific/Kiritimati'].forEach(timezone => {
+		it(`should not depend on the host timezone with utcDates (${timezone})`, function() {
+			const out = runOnTimezone(timezone, `
+				const row = excelToJson({ sourceFile: ${JSON.stringify(path.resolve(__dirname, 'test-data-typed-dates-2011.xlsx'))}, utcDates: true }).s[0];
+				process.stdout.write(JSON.stringify([row.A, row.B, row.C]));
+			`);
+			assert.deepStrictEqual(out, ['2011-12-31T00:00:00.000Z', '2011-12-31T00:00:00.000Z', '2011-12-31T00:00:00.000Z']);
+		});
 	});
 });
