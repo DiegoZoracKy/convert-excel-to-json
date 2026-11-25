@@ -365,6 +365,22 @@ const result = excelToJson({
 }
 ```
 
+### Keeping whitespace (trim)
+
+By default, leading and trailing whitespace is removed from text values. To keep the values exactly as they are in the cells, set `trim` to `false`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	trim: false
+});
+
+// a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
+```
+
 ### Range
 
 A specific range can be defined. Also like the previous configs, for all the sheets or per sheet.
