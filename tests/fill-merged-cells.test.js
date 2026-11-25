@@ -133,3 +133,28 @@ describe('"fillMergedCells": bordered merged headers and merges beyond !ref (own
 		assert.deepStrictEqual(excelToJson({ source, fillMergedCells: true, sheetStubs: true }).s, expected);
 	});
 });
+
+// Owner review (round 4): an xlsx file can keep a value on a cell covered by a merge. Excel only
+// shows the anchor, so the covered header cell must always resolve through the anchor.
+describe('"fillMergedCells": covered header cells holding a stale value (owner review round 4)', function() {
+	const XLSX = buildWorkbook.XLSX;
+	const buildSource = b1 => {
+		const ws = XLSX.utils.aoa_to_sheet([['Group', b1], [null, 20]]);
+		ws['!merges'] = [XLSX.utils.decode_range('A1:B1')];
+		return buildWorkbook({ s: ws });
+	};
+	const options = { header: { rows: 1 }, fillMergedCells: true, columnToKey: { B: '{{columnHeader}}' } };
+
+	it('should use the anchor, not a stale "Old" kept on B1, for ranges A1:B2 and A2:B2', function() {
+		const source = buildSource('Old');
+		assert.deepStrictEqual(excelToJson(Object.assign({ source, range: 'A1:B2' }, options)).s, [{ Group: 20 }]);
+		assert.deepStrictEqual(excelToJson(Object.assign({ source, range: 'A2:B2' }, options)).s, [{ Group: 20 }]);
+	});
+
+	it('should use the anchor when B1 keeps an empty string (instead of dropping the row)', function() {
+		const source = buildSource('');
+		assert.equal(XLSX.read(source).Sheets.s.B1.v, '');
+		assert.deepStrictEqual(excelToJson(Object.assign({ source, range: 'A1:B2' }, options)).s, [{ Group: 20 }]);
+		assert.deepStrictEqual(excelToJson(Object.assign({ source, range: 'A2:B2' }, options)).s, [{ Group: 20 }]);
+	});
+});
