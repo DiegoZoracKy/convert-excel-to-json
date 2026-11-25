@@ -78,7 +78,6 @@ const result = excelToJson({
     }]
 }
 
-
 ```
 
 ### Converting an xlsx that you have as a Buffer
@@ -528,6 +527,45 @@ const result = excelToJson({
 }
 ```
 
+### Rows as headers (transpose)
+
+When the headers are on the first column and each record is a column (instead of a row), set `transpose` to `true`. Rows and columns are swapped before the conversion, so the first column becomes the first row, and all the other configs (`header`, `columnToKey`, `{{columnHeader}}`...) work as usual. It can also be set per sheet.
+
+If a `range` is defined, it refers to the original sheet, and the transposed range is treated as if it started at `A1`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1:
+// |   | A    | B          | C           |
+// | 1 | Type | TypeData   | OtherType   |
+// | 2 | Date | DateData   | OtherDate   |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	transpose: true,
+	header: {
+		rows: 1 // the first column
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	}
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        Type: 'TypeData',
+        Date: 'DateData'
+    },{
+        Type: 'OtherType',
+        Date: 'OtherDate'
+    }]
+}
+```
+
+Without a `range`, each cell moves to its transposed coordinates (e.g. `B3` becomes `C2`), so empty leading rows/columns are kept as they are. With a `range`, the transposed block starts at `A1`.
+
 ### Dates
 
 Cells formatted as dates (or date and time) are returned as JavaScript `Date` objects representing the same date and time shown on Excel, in the local timezone of the machine running the conversion. This includes cells explicitly typed as dates in the file, even without a date format, and keeps milliseconds. If you prefer the Date to represent that wall-clock time in UTC (so it's the same regardless of the server timezone), set `utcDates` to `true`.
@@ -657,7 +695,6 @@ const result = excelToJson({
 **OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
 
 The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
-
 ### Skipping hidden columns and rows
 
 Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.

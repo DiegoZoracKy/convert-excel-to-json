@@ -112,4 +112,10 @@ describe('options combined: second review of #96', function() {
 		const result = excelToJson({ source, parseBooleans: true, columnToKey: { A: { property: 'n', transform: (v, row, cells) => [v, cells.B, cells.C] } } });
 		assert.deepStrictEqual(result.s, [{ n: [1, true, 'note'] }]);
 	});
+
+	it('transpose without a range + sheets by index: leading empty coordinates are kept', function() {
+		const ws = { '!ref': 'B2:B2', B2: { t: 's', v: 'v' } };
+		const source = buildWorkbook({ s: ws });
+		assert.equal(JSON.stringify(excelToJson({ source, sheets: [0], transpose: true, includeEmptyLines: true }).s), '[null,{"B":"v"}]');
+	});
 });
