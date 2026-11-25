@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const path = require('path');
 const excelToJson = require('../');
 const buildWorkbook = require('./helpers/workbook');
 
@@ -103,5 +104,32 @@ describe('"fillMergedCells" with merged header cells outside the range (second r
 		const source = buildWorkbook({ sheet1: ws });
 		const result = excelToJson({ source, range: 'B2:B2', fillMergedCells: true, columnToKey: { B: '{{B1}}' } });
 		assert.deepStrictEqual(result.sheet1, [{ Group: 5 }]);
+	});
+});
+
+// Owner review checks (round 3), assertions kept as delivered.
+// tests/bordered-header.xlsx, sheet "s": A1:B1 merged with 'Group' and a border, so B1 is a
+// styled cell without a value (a stub, as the workbook is read with sheetStubs); A2 = 10, B2 = 20.
+describe('"fillMergedCells": bordered merged headers and merges beyond !ref (owner review checks)', function() {
+	const XLSX = buildWorkbook.XLSX;
+
+	it('uses the merged anchor for a bordered header outside the selected data range', function() {
+		const sourceFile = path.join(__dirname, 'bordered-header.xlsx');
+		const options = { sourceFile, header: { rows: 1 }, fillMergedCells: true, columnToKey: { '*': '{{columnHeader}}' } };
+		// (without suffixDuplicateKeys, #83, both columns are named 'Group' and B wins)
+		const expected = [{ Group: 20 }];
+		assert.deepStrictEqual(excelToJson(Object.assign({}, options, { range: 'A1:B2' })).s, expected);
+		assert.deepStrictEqual(excelToJson(Object.assign({}, options, { range: 'A2:B2' })).s, expected);
+	});
+
+	it('fills the full extent of a merge beyond the last populated cell', function() {
+		const sheet = XLSX.utils.aoa_to_sheet([['Group']]);
+		sheet['!merges'] = [XLSX.utils.decode_range('A1:C2')];
+		const source = buildWorkbook({ s: sheet });
+		const expected = Array.from({ length: 2 }, () => ({ A: 'Group', B: 'Group', C: 'Group' }));
+		assert.deepStrictEqual(excelToJson({ source, fillMergedCells: true, range: 'A1:C2' }).s, expected);
+		assert.deepStrictEqual(excelToJson({ source, fillMergedCells: true }).s, expected);
+		// (on its own this already passed: the transposed variant, #90 + #92, is on #96)
+		assert.deepStrictEqual(excelToJson({ source, fillMergedCells: true, sheetStubs: true }).s, expected);
 	});
 });
