@@ -16,6 +16,11 @@ jobs:
       matrix:
         # Node.js LTS lines supported upstream (see https://nodejs.org/en/about/previous-releases)
         node-version: [22.x, 24.x, 26.x]
+        # dates depend on the host timezone: run on UTC and on a zone with DST/LMT history
+        tz: [UTC, America/Sao_Paulo]
+    name: test (node ${{ matrix.node-version }}, TZ ${{ matrix.tz }})
+    env:
+      TZ: ${{ matrix.tz }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
