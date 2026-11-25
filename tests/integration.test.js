@@ -38,6 +38,12 @@ describe('options combined (integration)', function() {
 		assert.deepStrictEqual(result.s, [{ name: 'a', name_2: 'b' }]);
 	});
 
+	it('parseBooleans + transform: the transform receives the Boolean', function() {
+		const source = buildWorkbook({ s: [['TRUE']] });
+		const result = excelToJson({ source, parseBooleans: true, columnToKey: { A: { property: 'ok', transform: v => typeof v } } });
+		assert.deepStrictEqual(result.s, [{ ok: 'boolean' }]);
+	});
+
 	it('formattedValues + trim: false', function() {
 		const ws = XLSX.utils.aoa_to_sheet([[0.5, '  text  ']]);
 		ws.A1.z = '0%';
@@ -57,5 +63,11 @@ describe('options combined: second review of #96', function() {
 		const source = buildWorkbook({ s: [['keep', 'skip'], ['a', null], [null, 'b']] });
 		const result = excelToJson({ source, header: { rows: 1 }, columnToKey: { A: { property: 'keep', transform: v => v.toUpperCase() }, B: () => null } });
 		assert.deepStrictEqual(result.s, [{ keep: 'A' }]);
+	});
+
+	it('transform cells + parseBooleans: cells are the converted values of the whole row', function() {
+		const source = buildWorkbook({ s: [[1, 'TRUE', 'note']] });
+		const result = excelToJson({ source, parseBooleans: true, columnToKey: { A: { property: 'n', transform: (v, row, cells) => [v, cells.B, cells.C] } } });
+		assert.deepStrictEqual(result.s, [{ n: [1, true, 'note'] }]);
 	});
 });
