@@ -52,6 +52,14 @@ describe('options combined (integration)', function() {
 		assert.deepStrictEqual(result.s, [{ ok: 'boolean' }]);
 	});
 
+	it('ArrayBuffer source + skipHiddenRows (the workbook is read with cellStyles)', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['a'], ['hidden'], ['c']]);
+		ws['!rows'] = [{}, { hidden: true }, {}];
+		const buffer = buildWorkbook({ s: ws });
+		const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+		assert.deepStrictEqual(excelToJson({ source: arrayBuffer, skipHiddenRows: true }).s, [{ A: 'a' }, { A: 'c' }]);
+	});
+
 	it('formattedValues + trim: false', function() {
 		const ws = XLSX.utils.aoa_to_sheet([[0.5, '  text  ']]);
 		ws.A1.z = '0%';
