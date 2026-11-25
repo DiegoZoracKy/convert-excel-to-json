@@ -5,8 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Dates are the npm release dates.
 
 ## [Unreleased]
+To be released as **2.0.0** (major version, because of the new Node.js requirement).
+
 ### Changed
+- **Breaking:** Node.js 22 or later is required (`"engines": { "node": ">=22" }`). CI runs on Node.js 22, 24 and 26 ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
+- The CLI no longer depends on `magicli`; it accepts the same arguments ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 - README: documented the `sheetStubs` option ([#9](https://github.com/DiegoZoracKy/convert-excel-to-json/issues/9), [#41](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/41)).
+
+### Security
+- `xlsx` (SheetJS) updated to 0.20.3, installed from the official SheetJS CDN, as the versions on the npm registry have known vulnerabilities ([#76](https://github.com/DiegoZoracKy/convert-excel-to-json/pull/76)).
 
 ## [1.7.0] - 2020-06-08
 ### Added

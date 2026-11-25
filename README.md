@@ -1,6 +1,6 @@
 # convert-excel-to-json
 
-[![Build Status](https://api.travis-ci.org/DiegoZoracKy/convert-excel-to-json.svg)](https://travis-ci.org/DiegoZoracKy/convert-excel-to-json)
+[![test](https://github.com/DiegoZoracKy/convert-excel-to-json/actions/workflows/test.yml/badge.svg)](https://github.com/DiegoZoracKy/convert-excel-to-json/actions/workflows/test.yml)
 
 Convert Excel to JSON, mapping sheet columns to object keys.
 
@@ -25,6 +25,8 @@ or to use it via command-line
 ```javascript
 npm install -g convert-excel-to-json
 ```
+
+**OBS:** The spreadsheet parsing is done by [SheetJS](https://sheetjs.com). SheetJS no longer publishes new versions of the `xlsx` package to the npm registry (the last one there, `0.18.5`, has known vulnerabilities), so this module depends on the official tarball served by the [SheetJS CDN](https://cdn.sheetjs.com) (`https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`). npm installs it transparently, no extra step is needed.
 
 ## Usage / Examples
 
