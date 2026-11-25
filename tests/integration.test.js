@@ -71,6 +71,15 @@ describe('options combined (integration)', function() {
 		assert.deepStrictEqual(result.s, [{ ok: 'boolean' }]);
 	});
 
+	it('fillMergedCells + transpose: merges are filled on the original layout', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['key', 'v1', 'v2'], ['group', null, null]]);
+		ws['!merges'] = [{ s: { r: 1, c: 1 }, e: { r: 1, c: 2 } }]; // B2:C2, value on B2
+		ws.B2 = { t: 's', v: 'merged' };
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, fillMergedCells: true, transpose: true, header: { rows: 1 }, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.deepStrictEqual(result.s, [{ key: 'v1', group: 'merged' }, { key: 'v2', group: 'merged' }]);
+	});
+
 	it('ArrayBuffer source + skipHiddenRows (the workbook is read with cellStyles)', function() {
 		const ws = XLSX.utils.aoa_to_sheet([['a'], ['hidden'], ['c']]);
 		ws['!rows'] = [{}, { hidden: true }, {}];
@@ -115,6 +124,14 @@ describe('options combined: second review of #96', function() {
 		const source = buildWorkbook({ s: [['toString', 'toString'], [null, 1]] });
 		const result = excelToJson({ source, header: { rows: 1 }, suffixDuplicateKeys: true, sheetStubs: true, whitespaceToNull: true, columnToKey: { '*': '{{columnHeader}}' } });
 		assert.equal(JSON.stringify(result.s), '[{"toString":null,"toString_2":1}]');
+	});
+
+	it('fillMergedCells + key callback: a merged header outside the range is read from its anchor', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['Group', null], [4, 5]]);
+		ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, header: { rows: 1 }, range: 'B2:B2', fillMergedCells: true, columnToKey: { '*': header => header } });
+		assert.deepStrictEqual(result.s, [{ Group: 5 }]);
 	});
 
 	it('key callback skipping a cell + transforms: no empty row is left', function() {

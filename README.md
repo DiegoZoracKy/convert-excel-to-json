@@ -719,6 +719,39 @@ const result = excelToJson({
 }
 ```
 
+### Merged cells
+
+On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range (only inside the `range`, when one is defined). It can also be set per sheet. Each physical row is still returned as its own object. Cells referenced by keys (e.g. a merged header used by `{{columnHeader}}`) are always read from the top-left cell of their merged range, even when they are outside the `range` or the covered cell still keeps an old value in the file.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1 (A2:A3 merged, with the value 'FirstCat'):
+// |   | A        | B     |
+// | 1 | Category | Term  |
+// | 2 | FirstCat | 12    |
+// | 3 |          | 360   |
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	},
+	fillMergedCells: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [
+        { Category: 'FirstCat', Term: 12 },
+        { Category: 'FirstCat', Term: 360 } // instead of { Term: 360 }
+    ]
+}
+```
+
 ### Empty lines (includeEmptyLines)
 
 By default, empty rows are removed from the result, so the position of an object on the result array doesn't necessarily match the row number on the sheet. To keep a position for each row (up to the last row with data), set `includeEmptyLines` to `true`. Empty rows will be represented as empty slots (`undefined`) on the array, which become `null` when the result is serialized with `JSON.stringify`.
@@ -749,6 +782,7 @@ const result = excelToJson({
 **OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
 
 The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
+
 ### Skipping hidden columns and rows
 
 Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.
