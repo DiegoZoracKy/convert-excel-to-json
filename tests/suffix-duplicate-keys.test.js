@@ -74,3 +74,17 @@ describe('"suffixDuplicateKeys" order (review of #83)', function() {
 		assert.strictEqual(result.sheet1[1].dup, 1);
 	});
 });
+
+describe('"suffixDuplicateKeys" key allocation (second review of #83)', function() {
+	it('should only allocate keys for the columns inside the range', function() {
+		const source = buildWorkbook({ s: [['id', 'id'], [1, 2]] });
+		const result = excelToJson({ source, header: { rows: 1 }, range: 'B1:B2', suffixDuplicateKeys: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.deepStrictEqual(result.s, [{ id: 2 }]);
+	});
+
+	it('should keep a unique "toString" (or any Object.prototype name) header as it is', function() {
+		const source = buildWorkbook({ s: [['toString', 'constructor', 'name', 'name'], [1, 2, 3, 4]] });
+		const result = excelToJson({ source, header: { rows: 1 }, suffixDuplicateKeys: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.deepStrictEqual(result.s, [{ toString: 1, constructor: 2, name: 3, name_2: 4 }]);
+	});
+});
