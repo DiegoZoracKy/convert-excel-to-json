@@ -81,3 +81,15 @@ describe('columnToKey functions (review of #78)', function() {
 		assert.deepStrictEqual(result.sheet1[3], { first_name: 'Bob', Notes: 'x' });
 	});
 });
+
+describe('columnToKey function skipping cells (second review of #78)', function() {
+	it('should not leave an empty row when the only cell of a row is skipped', function() {
+		const source = buildWorkbook({ s: [['keep', 'skip'], ['a', null], [null, 'b'], ['c', 'd']] });
+		const result = excelToJson({
+			source,
+			header: { rows: 1 },
+			columnToKey: { '*': header => header === 'skip' ? null : header }
+		});
+		assert.deepStrictEqual(result.s, [{ keep: 'a' }, { keep: 'c' }]);
+	});
+});
