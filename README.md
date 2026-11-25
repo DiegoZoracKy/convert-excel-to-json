@@ -516,6 +516,34 @@ The display text of numbers and dates is returned exactly as Excel shows it, inc
 
 If you only need the dates as strings, you can also keep the default and convert them with `.map()` on the result (e.g. `row.date.toISOString()`).
 
+### Booleans
+
+By default, boolean cells are returned as the text displayed on Excel (`'TRUE'` / `'FALSE'`). Set `parseBooleans` to `true` to get them as JavaScript Booleans. Text cells containing `true` or `false` (case insensitive) are also converted.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header: {
+		rows: 1
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	},
+	parseBooleans: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        Name: 'Anthony',
+        Membership: true // instead of 'TRUE'
+    }]
+}
+```
+
 ### Empty lines (includeEmptyLines)
 
 By default, empty rows are removed from the result, so the position of an object on the result array doesn't necessarily match the row number on the sheet. To keep a position for each row (up to the last row with data), set `includeEmptyLines` to `true`. Empty rows will be represented as empty slots (`undefined`) on the array, which become `null` when the result is serialized with `JSON.stringify`.
