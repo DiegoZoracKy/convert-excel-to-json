@@ -553,6 +553,7 @@ const result = excelToJson({
     }]
 }
 ```
+
 ### Null values
 
 If you would like to include null values in the result, you can specify the sheetStubs option.
@@ -579,6 +580,22 @@ const result = excelToJson({
         C: 'data of cell C1'
     }]
 }
+```
+
+### Keeping whitespace (trim)
+
+By default, leading and trailing whitespace is removed from text values. To keep the values exactly as they are in the cells, set `trim` to `false`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	trim: false
+});
+
+// a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
 ```
 
 ### Rows as headers (transpose)
@@ -619,6 +636,38 @@ const result = excelToJson({
 ```
 
 Without a `range`, each cell moves to its transposed coordinates (e.g. `B3` becomes `C2`), so empty leading rows/columns are kept as they are. With a `range`, the transposed block starts at `A1`.
+
+### Skipping hidden columns and rows
+
+Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// column B and row 3 are hidden
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	skipHiddenColumns: true,
+	skipHiddenRows: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        A: 'data of cell A1',
+        C: 'data of cell C1'
+    },{
+        A: 'data of cell A2',
+        C: 'data of cell C2'
+    },{
+        A: 'data of cell A4',
+        C: 'data of cell C4'
+    }]
+}
+```
+
+**OBS:** Header cells of hidden columns can still be referenced by cell variables, e.g. `{{B1}}`.
 
 ### Dates
 
@@ -782,54 +831,6 @@ const result = excelToJson({
 **OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
 
 The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
-
-### Skipping hidden columns and rows
-
-Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.
-
-```javascript
-'use strict';
-const excelToJson = require('convert-excel-to-json');
-
-// column B and row 3 are hidden
-const result = excelToJson({
-	sourceFile: 'SOME-EXCEL-FILE.xlsx',
-	skipHiddenColumns: true,
-	skipHiddenRows: true
-});
-
-// result will be an Object like:
-{
-    sheet1: [{
-        A: 'data of cell A1',
-        C: 'data of cell C1'
-    },{
-        A: 'data of cell A2',
-        C: 'data of cell C2'
-    },{
-        A: 'data of cell A4',
-        C: 'data of cell C4'
-    }]
-}
-```
-
-**OBS:** Header cells of hidden columns can still be referenced by cell variables, e.g. `{{B1}}`.
-
-### Keeping whitespace (trim)
-
-By default, leading and trailing whitespace is removed from text values. To keep the values exactly as they are in the cells, set `trim` to `false`.
-
-```javascript
-'use strict';
-const excelToJson = require('convert-excel-to-json');
-
-const result = excelToJson({
-	sourceFile: 'SOME-EXCEL-FILE.xlsx',
-	trim: false
-});
-
-// a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
-```
 
 ### Range
 
