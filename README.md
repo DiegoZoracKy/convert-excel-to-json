@@ -770,7 +770,7 @@ const result = excelToJson({
 
 ### Merged cells
 
-On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range (only inside the `range`, when one is defined). It can also be set per sheet. Each physical row is still returned as its own object. Cells referenced by keys (e.g. a merged header used by `{{columnHeader}}`) are read from their merged range even when they are outside the `range`.
+On a merged range, Excel keeps the value only on its first (top-left) cell, so the other rows/columns of the range come empty. Set `fillMergedCells` to `true` to repeat the value on all the cells of each merged range (only inside the `range`, when one is defined). It can also be set per sheet. Each physical row is still returned as its own object. Cells referenced by keys (e.g. a merged header used by `{{columnHeader}}`) are always read from the top-left cell of their merged range, even when they are outside the `range` or the covered cell still keeps an old value in the file.
 
 ```javascript
 'use strict';
