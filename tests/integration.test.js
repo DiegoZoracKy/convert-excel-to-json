@@ -38,6 +38,14 @@ describe('options combined (integration)', function() {
 		assert.deepStrictEqual(result.s, [{ name: 'a', name_2: 'b' }]);
 	});
 
+	it('whitespaceToNull + sheetStubs + skipHiddenColumns: hidden columns are not filled back', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['a', 'hidden', ' '], ['b', 'x', null]]);
+		ws['!cols'] = [{}, { hidden: true }, {}];
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, sheetStubs: true, whitespaceToNull: true, skipHiddenColumns: true });
+		assert.deepStrictEqual(result.s, [{ A: 'a', C: null }, { A: 'b', C: null }]);
+	});
+
 	it('parseBooleans + transform: the transform receives the Boolean', function() {
 		const source = buildWorkbook({ s: [['TRUE']] });
 		const result = excelToJson({ source, parseBooleans: true, columnToKey: { A: { property: 'ok', transform: v => typeof v } } });
@@ -57,6 +65,19 @@ describe('options combined: second review of #96', function() {
 		const source = buildWorkbook({ s: [[5, 'Name'], [1, 'x']] }); // A1 is a number: toLowerCase would throw
 		const result = excelToJson({ source, header: { rows: 1 }, range: 'B1:B2', suffixDuplicateKeys: true, columnToKey: { '*': header => header.toLowerCase() } });
 		assert.deepStrictEqual(result.s, [{ name: 'x' }]);
+	});
+
+	it('suffixDuplicateKeys + whitespaceToNull + sheetStubs: a wholly absent column is still emitted as null', function() {
+		const ws = { '!ref': 'A1:C1', A1: { t: 's', v: 'x' }, C1: { t: 's', v: 'y' } };
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, suffixDuplicateKeys: true, sheetStubs: true, whitespaceToNull: true });
+		assert.equal(JSON.stringify(result.s), '[{"A":"x","B":null,"C":"y"}]');
+	});
+
+	it('suffixDuplicateKeys + whitespaceToNull + sheetStubs + "toString" header', function() {
+		const source = buildWorkbook({ s: [['toString', 'toString'], [null, 1]] });
+		const result = excelToJson({ source, header: { rows: 1 }, suffixDuplicateKeys: true, sheetStubs: true, whitespaceToNull: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.equal(JSON.stringify(result.s), '[{"toString":null,"toString_2":1}]');
 	});
 
 	it('key callback skipping a cell + transforms: no empty row is left', function() {
