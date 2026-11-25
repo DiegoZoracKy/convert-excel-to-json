@@ -372,6 +372,8 @@ const result = excelToJson({
 }
 ```
 
+Without a `range`, each cell moves to its transposed coordinates (e.g. `B3` becomes `C2`), so empty leading rows/columns are kept as they are. With a `range`, the transposed block starts at `A1`.
+
 ### Skipping hidden columns and rows
 
 Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.

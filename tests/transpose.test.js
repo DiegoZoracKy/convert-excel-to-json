@@ -93,3 +93,12 @@ describe('"transpose" with "skipHiddenColumns" / "skipHiddenRows" (#50, #46)', f
 		assert.equal(excelToJson(config).sheet1.length, 3);
 	});
 });
+
+describe('"transpose" coordinates without a range (second review of #90)', function() {
+	it('should keep leading empty rows and columns (B3 -> C2)', function() {
+		const ws = { '!ref': 'B3:C4', B3: { t: 's', v: 'b3' }, C3: { t: 's', v: 'c3' }, B4: { t: 's', v: 'b4' } };
+		const source = buildWorkbook({ s: ws });
+		const result = excelToJson({ source, transpose: true, includeEmptyLines: true });
+		assert.equal(JSON.stringify(result.s), '[null,{"C":"b3","D":"b4"},{"C":"c3"}]');
+	});
+});
