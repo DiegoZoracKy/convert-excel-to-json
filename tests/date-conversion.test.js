@@ -52,7 +52,7 @@ describe('dates (#33, #52)', function() {
 		assert.equal(row.A.toISOString(), '2016-01-01T00:00:00.000Z');
 	});
 
-	['Asia/Kuala_Lumpur', 'America/Sao_Paulo', 'America/Los_Angeles', 'Europe/Berlin', 'UTC'].forEach(timezone => {
+	['Asia/Kuala_Lumpur', 'America/Sao_Paulo', 'America/Los_Angeles', 'Europe/Berlin', 'Pacific/Apia', 'UTC'].forEach(timezone => {
 		it(`should not drift on timezone ${timezone}`, function() {
 			const script = `
 				const excelToJson = require(${JSON.stringify(path.resolve(__dirname, '..'))});
@@ -80,7 +80,7 @@ describe('dates (#33, #52)', function() {
 describe('explicitly typed dates and milliseconds (review of #79)', function() {
 	const sourceFile = path.resolve(__dirname, 'test-data-typed-dates.xlsx');
 
-	['Asia/Kuala_Lumpur', 'America/Sao_Paulo', 'America/Los_Angeles', 'UTC'].forEach(timezone => {
+	['Asia/Kuala_Lumpur', 'America/Sao_Paulo', 'America/Los_Angeles', 'Pacific/Apia', 'UTC'].forEach(timezone => {
 		it(`should return typed dates as Dates and keep milliseconds on ${timezone}`, function() {
 			const script = `
 				const excelToJson = require(${JSON.stringify(path.resolve(__dirname, '..'))});
@@ -143,7 +143,7 @@ describe('dates: second review of #79', function() {
 
 	// tests/test-data-typed-dates-2011.xlsx, sheet "s": A1 and B1 are typed dates (t="d",
 	// 2011-12-31T00:00:00Z) with date formats, C1 is the serial number 40908 (2011-12-31) formatted as a date
-	['UTC', 'America/Sao_Paulo', 'Asia/Tokyo', 'America/Los_Angeles', 'Pacific/Kiritimati'].forEach(timezone => {
+	['UTC', 'America/Sao_Paulo', 'Asia/Tokyo', 'America/Los_Angeles', 'Pacific/Kiritimati', 'Pacific/Apia'].forEach(timezone => {
 		it(`should not depend on the host timezone with utcDates (${timezone})`, function() {
 			const out = runOnTimezone(timezone, `
 				const row = excelToJson({ sourceFile: ${JSON.stringify(path.resolve(__dirname, 'test-data-typed-dates-2011.xlsx'))}, utcDates: true }).s[0];
@@ -159,5 +159,47 @@ describe('dates on sheets named like Object.prototype properties', function() {
 		const source = buildWorkbook({ ['__proto__']: { '!ref': 'A1', A1: { t: 'n', v: 43466, z: 'yyyy-mm-dd' } } });
 		const result = excelToJson({ source, sheets: ['__proto__'], utcDates: true });
 		assert.equal(JSON.stringify(result['__proto__']), '[{"A":"2019-01-01T00:00:00.000Z"}]');
+	});
+});
+
+// Owner review check (round 3), assertions kept as delivered: Pacific/Apia skipped 2011-12-30
+// when it moved across the international date line, and SheetJS' parse_date_code (local Dates)
+// turned serial 40907 into 2011-12-31 there.
+describe('serial dates across the international date line (owner review check)', function() {
+	function inTimeZone(timezone, read) {
+		const original = process.env.TZ;
+		process.env.TZ = timezone;
+		try {
+			return read();
+		} finally {
+			if (original === undefined) {
+				delete process.env.TZ;
+			} else {
+				process.env.TZ = original;
+			}
+		}
+	}
+
+	it('returns the same UTC serial date on either side of the international date line', function() {
+		const source = buildWorkbook({ s: { '!ref': 'A1', A1: { t: 'n', v: 40907, z: 'yyyy-mm-dd' } } });
+		const read = () => excelToJson({ source, utcDates: true }).s[0].A.toISOString();
+		assert.equal(inTimeZone('UTC', read), '2011-12-30T00:00:00.000Z');
+		assert.equal(inTimeZone('Pacific/Apia', read), '2011-12-30T00:00:00.000Z');
+	});
+
+	it('returns the same UTC serial date on Pacific/Apia (child process)', function() {
+		const source = buildWorkbook({ s: { '!ref': 'A1:C1', A1: { t: 'n', v: 40907, z: 'yyyy-mm-dd' }, B1: { t: 'n', v: 40907.75, z: 'yyyy-mm-dd hh:mm' }, C1: { t: 'n', v: 40908, z: 'yyyy-mm-dd' } } });
+		const out = runOnTimezone('Pacific/Apia', `
+			const source = Buffer.from(${JSON.stringify(source.toString('base64'))}, 'base64');
+			const row = excelToJson({ source, utcDates: true }).s[0];
+			process.stdout.write(JSON.stringify([row.A, row.B, row.C]));
+		`);
+		assert.deepStrictEqual(out, ['2011-12-30T00:00:00.000Z', '2011-12-30T18:00:00.000Z', '2011-12-31T00:00:00.000Z']);
+	});
+
+	it('matches Excel on the 1900 leap year bug and on the 1904 date system edges', function() {
+		const ws = { '!ref': 'A1:D1', A1: { t: 'n', v: 59, z: 'yyyy-mm-dd' }, B1: { t: 'n', v: 61, z: 'yyyy-mm-dd' }, C1: { t: 'n', v: 1, z: 'yyyy-mm-dd' }, D1: { t: 'n', v: 2958465, z: 'yyyy-mm-dd' } };
+		const row = excelToJson({ source: buildWorkbook({ sheet1: ws }), utcDates: true }).sheet1[0];
+		assert.deepStrictEqual([row.A, row.B, row.C, row.D].map(d => d.toISOString().slice(0, 10)), ['1900-02-28', '1900-03-01', '1900-01-01', '9999-12-31']);
 	});
 });
