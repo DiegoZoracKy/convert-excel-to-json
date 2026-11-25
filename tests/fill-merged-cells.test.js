@@ -85,3 +85,23 @@ describe('"fillMergedCells" limited to the range (review of #92)', function() {
 		assert.ok(encodedCells < 100, `the merged column outside of the range must not be expanded (${encodedCells} cells)`);
 	});
 });
+
+describe('"fillMergedCells" with merged header cells outside the range (second review of #92)', function() {
+	const XLSX = buildWorkbook.XLSX;
+
+	it('should resolve a referenced header cell through the anchor of its merged range', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['Group', null], [4, 5]]);
+		ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }]; // A1:B1 = 'Group'
+		const source = buildWorkbook({ sheet1: ws });
+		const result = excelToJson({ source, header: { rows: 1 }, range: 'B2:B2', fillMergedCells: true, columnToKey: { '*': '{{columnHeader}}' } });
+		assert.deepStrictEqual(result.sheet1, [{ Group: 5 }]);
+	});
+
+	it('should resolve cell variables through the anchor too', function() {
+		const ws = XLSX.utils.aoa_to_sheet([['Group', null], [4, 5]]);
+		ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+		const source = buildWorkbook({ sheet1: ws });
+		const result = excelToJson({ source, range: 'B2:B2', fillMergedCells: true, columnToKey: { B: '{{B1}}' } });
+		assert.deepStrictEqual(result.sheet1, [{ Group: 5 }]);
+	});
+});
