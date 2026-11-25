@@ -6,6 +6,7 @@ Convert Excel to JSON, mapping sheet columns to object keys.
 
 Key features:
 - Define a specific Range (e.g. `'A1:E6'`)
+- Keep empty rows on the result with `includeEmptyLines`
 - Specify a column to key mapping (e.g. `{porperty1: 'CELLVALUE A1', property2: 'CELLVALUE B1'}`)
 - Get just specific sheets (e.g. `{sheets: ['sheet1', 'sheet2']}`)
 
@@ -123,6 +124,35 @@ const result = excelToJson({
 });
 
 // result will be an Object like the previous example, but without the rows that was defined as headers
+```
+
+To also keep the header rows on the result (e.g. to check if the headers are the expected ones) while still using them for `{{columnHeader}}`, set `header.include` to `true`:
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	header:{
+	    rows: 1,
+	    include: true
+	},
+	columnToKey: {
+		'*': '{{columnHeader}}'
+	}
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        id: 'id',           // the header row
+        name: 'name'
+    },{
+        id: 'data of cell A2',
+        name: 'data of cell B2'
+    }]
+}
 ```
 
 ### Only to specific sheets
@@ -354,6 +384,85 @@ const local = excelToJson({ sourceFile: 'SOME-EXCEL-FILE.xlsx' });
 
 const utc = excelToJson({ sourceFile: 'SOME-EXCEL-FILE.xlsx', utcDates: true });
 // utc.sheet1[0].A -> 2019-01-01T18:30:00.000Z, on any server
+```
+
+### Empty lines (includeEmptyLines)
+
+By default, empty rows are removed from the result, so the position of an object on the result array doesn't necessarily match the row number on the sheet. To keep a position for each row (up to the last row with data), set `includeEmptyLines` to `true`. Empty rows will be represented as empty slots (`undefined`) on the array, which become `null` when the result is serialized with `JSON.stringify`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// sheet1: row 1 is empty, row 2 has data, row 3 is empty, row 4 has data
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	includeEmptyLines: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [
+        undefined, // row 1
+        { A: 'data of cell A2', B: 'data of cell B2' },
+        undefined, // row 3
+        { A: 'data of cell A4', B: 'data of cell B4' }
+    ]
+}
+
+// JSON.stringify(result) -> {"sheet1":[null,{"A":"data of cell A2","B":"data of cell B2"},null,{"A":"data of cell A4","B":"data of cell B4"}]}
+```
+
+**OBS:** The empty rows are *holes* on the array, so `.forEach()`, `.map()` and `.filter()` skip them. Use a `for` loop or `Array.from(result.sheet1)` if you need to iterate over them too.
+
+The position on the array follows the row number on the sheet (`result.sheet1[0]` is row 1), so the rows skipped by `header.rows` also take a position, as empty slots. e.g. with `header: { rows: 1 }` and data only on `A2`, the result is `[undefined, { A: 'data of cell A2' }]` (`[null,{"A":"data of cell A2"}]` as JSON).
+
+### Skipping hidden columns and rows
+
+Set `skipHiddenColumns` and/or `skipHiddenRows` to `true` to leave the columns and rows hidden on Excel out of the result.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+// column B and row 3 are hidden
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	skipHiddenColumns: true,
+	skipHiddenRows: true
+});
+
+// result will be an Object like:
+{
+    sheet1: [{
+        A: 'data of cell A1',
+        C: 'data of cell C1'
+    },{
+        A: 'data of cell A2',
+        C: 'data of cell C2'
+    },{
+        A: 'data of cell A4',
+        C: 'data of cell C4'
+    }]
+}
+```
+
+**OBS:** Header cells of hidden columns can still be referenced by cell variables, e.g. `{{B1}}`.
+
+### Keeping whitespace (trim)
+
+By default, leading and trailing whitespace is removed from text values. To keep the values exactly as they are in the cells, set `trim` to `false`.
+
+```javascript
+'use strict';
+const excelToJson = require('convert-excel-to-json');
+
+const result = excelToJson({
+	sourceFile: 'SOME-EXCEL-FILE.xlsx',
+	trim: false
+});
+
+// a cell with the value '  some text  ' will be returned as '  some text  ' instead of 'some text'
 ```
 
 ### Range
