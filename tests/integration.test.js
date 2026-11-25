@@ -37,6 +37,13 @@ describe('options combined (integration)', function() {
 		const result = excelToJson({ source, header: { rows: 1 }, suffixDuplicateKeys: true, columnToKey: { '*': header => header.toLowerCase() } });
 		assert.deepStrictEqual(result.s, [{ name: 'a', name_2: 'b' }]);
 	});
+
+	it('formattedValues + trim: false', function() {
+		const ws = XLSX.utils.aoa_to_sheet([[0.5, '  text  ']]);
+		ws.A1.z = '0%';
+		const source = buildWorkbook({ s: ws });
+		assert.deepStrictEqual(excelToJson({ source, formattedValues: true, trim: false }).s, [{ A: '50%', B: '  text  ' }]);
+	});
 });
 
 describe('options combined: second review of #96', function() {
