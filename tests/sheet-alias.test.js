@@ -61,3 +61,24 @@ describe('sheet "alias" collisions (review of #91)', function() {
 		assert.deepStrictEqual(excelToJson({ source, sheets: ['sheet1', 'sheet1'] }), { sheet1: [{ A: 'one' }] });
 	});
 });
+
+describe('sheet names that are Object.prototype properties (second review of #91)', function() {
+	it('should not report a collision for a sheet named "toString" selected twice without aliases', function() {
+		const source = buildWorkbook({ toString: [['x']] });
+		assert.deepStrictEqual(excelToJson({ source, sheets: ['toString', 'toString'] }), { toString: [{ A: 'x' }] });
+	});
+
+	it('should still report a real collision with an alias named "toString"', function() {
+		const source = buildWorkbook({ toString: [['x']], other: [['y']] });
+		assert.throws(() => excelToJson({ source, sheets: ['toString', { name: 'other', alias: 'toString' }] }), /result key 'toString'/);
+	});
+});
+
+describe('a sheet named "__proto__" (second review of #91)', function() {
+	it('should be a regular key of the result', function() {
+		const source = buildWorkbook({ ['__proto__']: [['x']] });
+		const result = excelToJson({ source, sheets: ['__proto__'] });
+		assert.ok(Object.prototype.hasOwnProperty.call(result, '__proto__'));
+		assert.equal(JSON.stringify(result), '{"__proto__":[{"A":"x"}]}');
+	});
+});
