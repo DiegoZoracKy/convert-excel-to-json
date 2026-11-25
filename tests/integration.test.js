@@ -34,6 +34,12 @@ describe('options combined (integration)', function() {
 		assert.deepStrictEqual(out, ['2019-1-1-0-0', '2019-1-1-0-0', '2019-1-1-0-0']);
 	});
 
+	it('sheets by index + alias', function() {
+		const source = buildWorkbook({ first: [['a']], second: [['b']] });
+		assert.deepStrictEqual(excelToJson({ source, sheets: [{ index: 1, alias: 'x' }, 'first'] }), { x: [{ A: 'b' }], first: [{ A: 'a' }] });
+		assert.throws(() => excelToJson({ source, sheets: ['first', { index: 1, alias: 'first' }] }), /result key 'first'/);
+	});
+
 	it('transform + suffixDuplicateKeys: each transform runs on its own column', function() {
 		const source = buildWorkbook({ s: [['n', 'n'], [1, 2]] });
 		const result = excelToJson({
@@ -82,6 +88,16 @@ describe('options combined (integration)', function() {
 });
 
 describe('options combined: second review of #96', function() {
+	it('aliases + dates: a worksheet selected under two aliases is normalized once (America/Sao_Paulo)', function() {
+		const sourceFile = path.resolve(__dirname, 'test-data-typed-dates.xlsx');
+		const out = runOnTimezone('America/Sao_Paulo', `
+			const once = excelToJson({ sourceFile: ${JSON.stringify(sourceFile)}, sheets: ['s'] });
+			const twice = excelToJson({ sourceFile: ${JSON.stringify(sourceFile)}, sheets: [{ name: 's', alias: 'a' }, { name: 's', alias: 'b' }] });
+			process.stdout.write(JSON.stringify([once.s[0].A, twice.a[0].A, twice.b[0].A]));
+		`);
+		assert.deepStrictEqual(out, ['2019-01-01T12:20:30.500Z', '2019-01-01T12:20:30.500Z', '2019-01-01T12:20:30.500Z']);
+	});
+
 	it('suffixDuplicateKeys + key callback + range: a column outside the range is never keyed', function() {
 		const source = buildWorkbook({ s: [[5, 'Name'], [1, 'x']] }); // A1 is a number: toLowerCase would throw
 		const result = excelToJson({ source, header: { rows: 1 }, range: 'B1:B2', suffixDuplicateKeys: true, columnToKey: { '*': header => header.toLowerCase() } });
