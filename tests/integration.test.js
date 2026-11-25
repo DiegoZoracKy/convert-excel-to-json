@@ -21,6 +21,19 @@ function runOnTimezone(timezone, body) {
 }
 
 describe('options combined (integration)', function() {
+	// Pinned to America/Sao_Paulo (child process): with the original bug (dates not normalized on
+	// sheets selected by index) this passes on UTC and fails there.
+	it('sheets by index + dates: dates are normalized on sheets selected by index (America/Sao_Paulo)', function() {
+		const ws = { A1: { t: 'n', v: 43466, z: 'yyyy-mm-dd' }, '!ref': 'A1' }; // 2019-01-01
+		const source = buildWorkbook({ S: ws });
+		const out = runOnTimezone('America/Sao_Paulo', `
+			const source = Buffer.from(${JSON.stringify(source.toString('base64'))}, 'base64');
+			const p = d => [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()].join('-');
+			process.stdout.write(JSON.stringify([p(excelToJson({ source, sheets: [0] }).S[0].A), p(excelToJson({ source, sheets: [{ index: 0 }] }).S[0].A), p(excelToJson({ source, sheets: ['S'] }).S[0].A)]));
+		`);
+		assert.deepStrictEqual(out, ['2019-1-1-0-0', '2019-1-1-0-0', '2019-1-1-0-0']);
+	});
+
 	it('transform + suffixDuplicateKeys: each transform runs on its own column', function() {
 		const source = buildWorkbook({ s: [['n', 'n'], [1, 2]] });
 		const result = excelToJson({
