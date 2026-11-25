@@ -310,7 +310,11 @@ const result = excelToJson({
 
 ### Transforming values during the conversion
 
-A column (or `'*'`) can also be mapped to an object with the key name on `property` and a `transform` function. The function receives the cell value and the entire row (with the original values of all the other columns) and returns the value to be used on the result.
+A column (or `'*'`) can also be mapped to an object with the key name on `property` and a `transform` function. It is called as `transform(value, row, cells)` and returns the value to be used on the result:
+
+- `value`: the cell value.
+- `row`: this row of the result with the original (not transformed) values of the **mapped** columns, by their keys (e.g. `row.firstName`).
+- `cells`: **every** cell of that sheet row by column letter (e.g. `cells.F`), including the columns that are not mapped on `columnToKey` or are outside the `range`.
 
 ```javascript
 'use strict';
@@ -335,6 +339,10 @@ const result = excelToJson({
 		E: {
 			property: 'price',
 			transform: value => Number(value.toFixed(2)) // 1.4400000000000002 -> 1.44
+		},
+		F: {
+			property: 'total',
+			transform: (value, row, cells) => value * cells.G // column G is not mapped
 		}
 	}
 });

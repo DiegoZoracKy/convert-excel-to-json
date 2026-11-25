@@ -113,3 +113,27 @@ describe('transform (review of #82)', function() {
 		assert.deepStrictEqual(result.sheet1[3], { name: 'Banana' });
 	});
 });
+
+describe('transform callbacks (second review of #82)', function() {
+	it('should receive every cell of the sheet row (mapped or not) as the 3rd argument', function() {
+		const source = buildWorkbook({ s: [['qty', 'price', 'note'], [2, 10, 'x']] });
+		const seen = [];
+		const result = excelToJson({
+			source,
+			header: { rows: 1 },
+			range: 'A1:A2',
+			columnToKey: {
+				A: { property: 'total', transform: (value, row, cells) => { seen.push(row, cells); return value * cells.B; } }
+			}
+		});
+		assert.deepStrictEqual(result.s, [{ total: 20 }]);
+		assert.deepStrictEqual(seen, [{ total: 2 }, { A: 2, B: 10, C: 'x' }]);
+	});
+
+	it('should not leave an empty row when the only cell of a row gets an empty key', function() {
+		const source = buildWorkbook({ s: [['a', ''], [1, null], [null, 2]] });
+		// the header of column B is empty, so its key is '' and its cells are skipped
+		const result = excelToJson({ source, header: { rows: 1 }, columnToKey: { '*': { property: '{{columnHeader}}', transform: v => v } } });
+		assert.deepStrictEqual(result.s, [{ a: 1 }]);
+	});
+});
